@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   createParticleAttributes,
+  isWordmarkShape,
+  LOGO_RENDER_ORDER,
   PARTICLE_DEPTH_CLAMP_Z,
   PARTICLE_KIND_SETTINGS,
   sampleBottomEmittersFromTextShapes,
@@ -50,6 +52,26 @@ describe('logo particle emitters', () => {
     ])
   })
 
+  it('classifies wordmark geometry separately from decorative geometry', () => {
+    expect(
+      isWordmarkShape([
+        { x: 100, y: 1400 },
+        { x: 160, y: 1400 },
+        { x: 160, y: 1640 },
+        { x: 100, y: 1640 },
+      ]),
+    ).toBe(true)
+
+    expect(
+      isWordmarkShape([
+        { x: 100, y: 1700 },
+        { x: 500, y: 1700 },
+        { x: 500, y: 2300 },
+        { x: 100, y: 2300 },
+      ]),
+    ).toBe(false)
+  })
+
   it('spreads flame emitters by x bucket while keeping bottom points', () => {
     const points = [
       { x: 0, y: 0 },
@@ -86,6 +108,13 @@ describe('logo particle emitters', () => {
       expect(Math.min(...yDrifts)).toBeGreaterThanOrEqual(settings.driftY[0])
       expect(Math.max(...yDrifts)).toBeLessThanOrEqual(settings.driftY[1])
       expect(settings.fadeOutStart).toBeGreaterThanOrEqual(0.9)
+      expect(settings.alphaMultiplier).toBeLessThanOrEqual(kind === 'flame' ? 1.1 : 0.25)
     }
+  })
+
+  it('keeps flames visible while preserving text readability', () => {
+    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.85)
+    expect(PARTICLE_KIND_SETTINGS.flame.depthTest).toBe(false)
+    expect(LOGO_RENDER_ORDER.textOverlay).toBeGreaterThan(LOGO_RENDER_ORDER.particles)
   })
 })

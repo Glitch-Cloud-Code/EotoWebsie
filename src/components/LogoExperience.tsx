@@ -20,6 +20,8 @@ import {
 } from 'three'
 import {
   createParticleAttributes,
+  isWordmarkShape,
+  LOGO_RENDER_ORDER,
   PARTICLE_DEPTH_CLAMP_Z,
   PARTICLE_KIND_SETTINGS,
   sampleBottomEmittersFromTextShapes,
@@ -27,6 +29,12 @@ import {
   type ParticleKind,
   type Point2D,
 } from './logoParticles'
+import {
+  LOGO_AMBIENT_LIGHT,
+  LOGO_DIRECTIONAL_LIGHTS,
+  LOGO_HEMISPHERE_LIGHT,
+  LOGO_POINT_LIGHTS,
+} from './logoLighting'
 
 type LogoExperienceProps = {
   alt: string
@@ -88,16 +96,18 @@ function ParticleField({
       new ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        depthTest: true,
+        depthTest: PARTICLE_KIND_SETTINGS[kind].depthTest,
         blending: kind === 'flame' ? AdditiveBlending : NormalBlending,
         uniforms: {
           uTime: { value: 0 },
           uPixelRatio: { value: typeof window === 'undefined' ? 1 : window.devicePixelRatio },
+          uAlphaMultiplier: { value: PARTICLE_KIND_SETTINGS[kind].alphaMultiplier },
           uKind: { value: kind === 'flame' ? 0 : 1 },
         },
         vertexShader: `
           uniform float uTime;
           uniform float uPixelRatio;
+          uniform float uAlphaMultiplier;
           uniform float uKind;
           attribute float aScale;
           attribute float aSeed;
@@ -135,6 +145,7 @@ function ParticleField({
           }
         `,
         fragmentShader: `
+          uniform float uAlphaMultiplier;
           varying float vLife;
           varying float vKind;
           varying float vSeed;
@@ -160,12 +171,12 @@ function ParticleField({
               vec3 core = vec3(1.0, 0.94, 0.74);
               color = mix(ember, flame, smoothstep(0.0, 0.45, inverseLife));
               color = mix(color, core, pow(inverseLife, 2.2));
-              alpha = softEdge * visibility * (0.36 + pow(inverseLife, 0.7)) * 1.16;
+              alpha = softEdge * visibility * (0.32 + pow(inverseLife, 0.7)) * uAlphaMultiplier;
             } else {
               vec3 denseSmoke = vec3(0.1, 0.08, 0.08);
               vec3 lightSmoke = vec3(0.58, 0.5, 0.49);
               color = mix(denseSmoke, lightSmoke, smoothstep(0.0, 1.0, vLife));
-              alpha = softEdge * visibility * pow(inverseLife, 1.05) * 0.3;
+              alpha = softEdge * visibility * pow(inverseLife, 1.05) * uAlphaMultiplier;
             }
 
             alpha *= 0.8 + sin(vSeed * 41.0 + vLife * 12.0) * 0.08;
@@ -193,7 +204,15 @@ function ParticleField({
     pointsRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.35) * (kind === 'smoke' ? 0.04 : 0.02)
   })
 
-  return <points frustumCulled={false} geometry={geometry} material={material} ref={pointsRef} />
+  return (
+    <points
+      frustumCulled={false}
+      geometry={geometry}
+      material={material}
+      ref={pointsRef}
+      renderOrder={LOGO_RENDER_ORDER.particles}
+    />
+  )
 }
 
 function createWornMetalTexture() {
@@ -345,14 +364,14 @@ function Model({
   const material = useMemo(
     () => {
       const nextMaterial = new MeshPhysicalMaterial({
-        color: '#dfd4c1',
+        color: '#fff5df',
         metalness: 1,
-        roughness: 0.34,
-        clearcoat: 0.18,
-        clearcoatRoughness: 0.42,
+        roughness: 0.27,
+        clearcoat: 0.32,
+        clearcoatRoughness: 0.34,
         reflectivity: 1,
-        emissive: '#220809',
-        emissiveIntensity: 0.18,
+        emissive: '#37120d',
+        emissiveIntensity: 0.24,
         side: DoubleSide,
       })
 
@@ -368,10 +387,24 @@ function Model({
     [texture],
   )
 
+  const textOverlayMaterial = useMemo(
+    () => {
+      const nextMaterial = material.clone()
+      nextMaterial.transparent = true
+      nextMaterial.opacity = 1
+      nextMaterial.depthTest = false
+      nextMaterial.depthWrite = false
+      nextMaterial.emissiveIntensity = 0.38
+      return nextMaterial
+    },
+    [material],
+  )
+
   const geometries = useMemo(
     () =>
       shapes.map(
         (shape: Shape) => {
+          const points = shape.getSpacedPoints(Math.max(28, Math.floor(shape.getLength() / 8)))
           const geometry = new ExtrudeGeometry(shape, {
             depth: 30,
             bevelEnabled: true,
@@ -383,7 +416,10 @@ function Model({
           })
 
           geometry.translate(-logoLayout.centerX, -logoLayout.centerY, -15)
-          return geometry
+          return {
+            geometry,
+            isWordmark: isWordmarkShape(points),
+          }
         },
       ),
     [logoLayout.centerX, logoLayout.centerY, shapes],
@@ -391,11 +427,12 @@ function Model({
 
   useEffect(() => {
     return () => {
-      geometries.forEach((geometry) => geometry.dispose())
+      geometries.forEach(({ geometry }) => geometry.dispose())
       material.dispose()
+      textOverlayMaterial.dispose()
       texture?.dispose()
     }
-  }, [geometries, material, texture])
+  }, [geometries, material, textOverlayMaterial, texture])
 
   useFrame((state, delta) => {
     const current = root.current
@@ -452,7 +489,7 @@ function Model({
       <group scale={[0.031, -0.031, 0.031]}>
         <ParticleField emitters={logoLayout.smokeEmitters} kind="smoke" />
         <ParticleField emitters={logoLayout.flameEmitters} kind="flame" />
-        {geometries.map((geometry, index) => (
+        {geometries.map(({ geometry }, index) => (
           <mesh
             castShadow
             geometry={geometry}
@@ -461,6 +498,16 @@ function Model({
             receiveShadow
           />
         ))}
+        {geometries
+          .filter(({ isWordmark }) => isWordmark)
+          .map(({ geometry }, index) => (
+            <mesh
+              geometry={geometry}
+              key={`wordmark-overlay-${index}`}
+              material={textOverlayMaterial}
+              renderOrder={LOGO_RENDER_ORDER.textOverlay}
+            />
+          ))}
       </group>
     </group>
   )
@@ -514,18 +561,34 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
       onError={() => setHasError(true)}
     >
       <div className="logo-canvas-shell">
-        <Canvas camera={{ fov: 26, position: [0, 0, 170] }} dpr={[1, 2]} gl={{ alpha: true }}>
+        <Canvas camera={{ fov: 26, position: [0, 0, 170] }} dpr={[1, 2]} gl={{ alpha: true, preserveDrawingBuffer: true }}>
           <fog args={['#0a0708', 95, 255]} attach="fog" />
-          <ambientLight intensity={1.45} />
-          <directionalLight color="#fff4df" intensity={7.2} position={[42, 55, 86]} />
-          <directionalLight color="#cf202a" intensity={3.4} position={[-58, -10, 72]} />
-          <directionalLight color="#fff9f0" intensity={2.8} position={[0, 28, 118]} />
-          <pointLight color="#ffd9b8" intensity={3200} position={[0, 12, 82]} />
-          <pointLight color="#7b1015" intensity={2100} position={[-22, -8, 58]} />
+          <ambientLight intensity={LOGO_AMBIENT_LIGHT.intensity} />
+          <hemisphereLight
+            color={LOGO_HEMISPHERE_LIGHT.color}
+            groundColor={LOGO_HEMISPHERE_LIGHT.groundColor}
+            intensity={LOGO_HEMISPHERE_LIGHT.intensity}
+          />
+          {LOGO_DIRECTIONAL_LIGHTS.map((light) => (
+            <directionalLight
+              color={light.color}
+              intensity={light.intensity}
+              key={light.key}
+              position={light.position}
+            />
+          ))}
+          {LOGO_POINT_LIGHTS.map((light) => (
+            <pointLight
+              color={light.color}
+              intensity={light.intensity}
+              key={light.key}
+              position={light.position}
+            />
+          ))}
           <spotLight
             angle={0.4}
             color="#b71d25"
-            intensity={32000}
+            intensity={22000}
             penumbra={1}
             position={[0, -64, 102]}
           />

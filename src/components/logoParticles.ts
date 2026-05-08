@@ -12,9 +12,16 @@ export type ShapeSampler = {
 
 export const PARTICLE_DEPTH_CLAMP_Z = -18
 
+export const LOGO_RENDER_ORDER = {
+  particles: 5,
+  textOverlay: 6,
+} as const
+
 export const PARTICLE_KIND_SETTINGS = {
   flame: {
+    alphaMultiplier: 0.9,
     count: 320,
+    depthTest: false,
     driftY: [220, 400],
     driftZ: 70,
     fadeOutStart: 0.94,
@@ -22,7 +29,9 @@ export const PARTICLE_KIND_SETTINGS = {
     startZ: [-70, -24],
   },
   smoke: {
+    alphaMultiplier: 0.24,
     count: 220,
+    depthTest: false,
     driftY: [176, 336],
     driftZ: 110,
     fadeOutStart: 0.94,
@@ -30,6 +39,30 @@ export const PARTICLE_KIND_SETTINGS = {
     startZ: [-110, -36],
   },
 } as const
+
+export function isWordmarkShape(points: Point2D[]) {
+  if (points.length === 0) {
+    return false
+  }
+
+  const xs = points.map((point) => point.x)
+  const ys = points.map((point) => point.y)
+  const minX = Math.min(...xs)
+  const maxX = Math.max(...xs)
+  const minY = Math.min(...ys)
+  const maxY = Math.max(...ys)
+  const width = maxX - minX
+  const height = maxY - minY
+
+  return (
+    minY > 1320 &&
+    maxY < 1665 &&
+    width > 18 &&
+    height > 36 &&
+    width < 340 &&
+    height < 310
+  )
+}
 
 export function spreadEmittersAcrossBand(
   points: Point2D[],
@@ -77,27 +110,13 @@ export function sampleBottomEmittersFromTextShapes(
       return []
     }
 
-    const xs = points.map((point) => point.x)
-    const ys = points.map((point) => point.y)
-    const minX = Math.min(...xs)
-    const maxX = Math.max(...xs)
-    const minY = Math.min(...ys)
-    const maxY = Math.max(...ys)
-    const width = maxX - minX
-    const height = maxY - minY
-
-    const isWordmarkShape =
-      minY > 1320 &&
-      maxY < 1665 &&
-      width > 18 &&
-      height > 36 &&
-      width < 340 &&
-      height < 310
-
-    if (!isWordmarkShape) {
+    if (!isWordmarkShape(points)) {
       return []
     }
 
+    const maxY = Math.max(...points.map((point) => point.y))
+    const minY = Math.min(...points.map((point) => point.y))
+    const height = maxY - minY
     const bottomCutoff = maxY - Math.max(10, Math.min(28, height * 0.18))
 
     return points
