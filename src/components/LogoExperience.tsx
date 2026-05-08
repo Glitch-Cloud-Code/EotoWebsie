@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import React, { Suspense, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { ContactShadows, Html } from '@react-three/drei'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
@@ -35,6 +35,7 @@ import {
   LOGO_HEMISPHERE_LIGHT,
   LOGO_POINT_LIGHTS,
 } from './logoLighting'
+import { getLogoTiltFromPointer, normalizeViewportPointer, type PointerTarget } from './logoPointer'
 
 type LogoExperienceProps = {
   alt: string
@@ -293,9 +294,11 @@ function createWornMetalTexture() {
 }
 
 function Model({
+  globalPointer,
   isTouch,
   svgSrc,
 }: {
+  globalPointer: RefObject<PointerTarget>
   isTouch: boolean
   svgSrc: string
 }) {
@@ -434,15 +437,16 @@ function Model({
     }
   }, [geometries, material, textOverlayMaterial, texture])
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     const current = root.current
     if (!current) {
       return
     }
 
     if (!isTouch) {
-      targetTilt.current.x = MathUtils.clamp(-state.pointer.y * 0.15, -0.15, 0.15)
-      targetTilt.current.y = MathUtils.clamp(-state.pointer.x * 0.28, -0.28, 0.28)
+      const tilt = getLogoTiltFromPointer(globalPointer.current)
+      targetTilt.current.x = tilt.x
+      targetTilt.current.y = tilt.y
     } else {
       targetTilt.current.x = 0
       targetTilt.current.y = 0
@@ -522,6 +526,7 @@ function Loader() {
 }
 
 export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
+  const globalPointer = useRef<PointerTarget>({ x: 0, y: 0 })
   const [hasError, setHasError] = useState(false)
   const [isTouch, setIsTouch] = useState(false)
 
@@ -536,6 +541,19 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
 
     media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const updatePointer = (event: PointerEvent) => {
+      globalPointer.current = normalizeViewportPointer(event.clientX, event.clientY, window.innerWidth, window.innerHeight)
+    }
+
+    window.addEventListener('pointermove', updatePointer, { passive: true })
+    return () => window.removeEventListener('pointermove', updatePointer)
   }, [])
 
   const supportsWebGL =
@@ -594,7 +612,7 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
           />
 
           <Suspense fallback={<Loader />}>
-            <Model isTouch={isTouch} svgSrc={fallbackSrc} />
+            <Model globalPointer={globalPointer} isTouch={isTouch} svgSrc={fallbackSrc} />
           </Suspense>
 
           <ContactShadows blur={2.8} color="#26090c" opacity={0.42} position={[0, -58, 0]} />
