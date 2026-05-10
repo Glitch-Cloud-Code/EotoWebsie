@@ -10,13 +10,18 @@ export type LogoLayout = {
   centerX: number
   centerY: number
   flameEmitters: Point2D[]
+  height: number
   smokeEmitters: Point2D[]
+  width: number
 }
 
 export type LogoGeometryEntry = {
   geometry: ExtrudeGeometry
   isWordmark: boolean
 }
+
+export const LOGO_HITBOX_DEPTH = 120
+export const LOGO_HITBOX_PADDING = 80
 
 export function buildLogoLayout(shapes: Shape[]): LogoLayout {
   const sampledPoints = shapes.flatMap((shape) =>
@@ -55,10 +60,12 @@ export function buildLogoLayout(shapes: Shape[]): LogoLayout {
       textBottomEmitters.length > 0
         ? spreadEmittersAcrossBand(textBottomEmitters, 46, 'bottom')
         : spreadEmittersAcrossBand(centeredEmitters, 38, 'bottom'),
+    height: bounds.maxY - bounds.minY + LOGO_HITBOX_PADDING,
     smokeEmitters:
       smokeBandPoints.length > 0
         ? spreadEmittersAcrossBand(smokeBandPoints, 22, 'center')
         : spreadEmittersAcrossBand(centeredEmitters, 22, 'center'),
+    width: bounds.maxX - bounds.minX + LOGO_HITBOX_PADDING,
   }
 }
 

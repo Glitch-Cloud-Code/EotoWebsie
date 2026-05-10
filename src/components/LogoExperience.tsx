@@ -4,7 +4,7 @@ import { ContactShadows, Html } from '@react-three/drei'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import { DoubleSide, Group, MathUtils, MeshPhysicalMaterial, Object3D, SpotLight as ThreeSpotLight } from 'three'
 import { ParticleField } from './ParticleField'
-import { buildLogoLayout, createLogoGeometries } from './logoGeometry'
+import { buildLogoLayout, createLogoGeometries, LOGO_HITBOX_DEPTH } from './logoGeometry'
 import {
   LOGO_AMBIENT_LIGHT,
   LOGO_DIRECTIONAL_LIGHTS,
@@ -175,6 +175,10 @@ function Model({
   return (
     <group onClick={startSpin} onPointerDown={startSpin} ref={root}>
       <group scale={[0.031, -0.031, 0.031]}>
+        <mesh>
+          <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
+          <meshBasicMaterial depthWrite={false} opacity={0} transparent />
+        </mesh>
         <ParticleField emitters={logoLayout.smokeEmitters} kind="smoke" />
         <ParticleField emitters={logoLayout.flameEmitters} kind="flame" />
         {geometries.map(({ geometry }, index) => (

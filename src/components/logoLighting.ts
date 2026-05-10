@@ -62,25 +62,25 @@ export const LOGO_DIRECTIONAL_LIGHTS: DirectionalLogoLight[] = [
 export const LOGO_POINT_LIGHTS: PointLogoLight[] = [
   {
     color: "#fff2d4",
-    intensity: 100000,
+    intensity: 25000,
     key: "front-glint",
     position: [0, 12, 86],
   },
   {
     color: "#ffd0a5",
-    intensity: 100000,
+    intensity: 25000,
     key: "right-glint",
     position: [86, 18, 18],
   },
   {
     color: "#b71d25",
-    intensity: 100000,
+    intensity: 25000,
     key: "left-red-glow",
     position: [-86, -16, 28],
   },
   {
     color: "#fff0d8",
-    intensity: 100000,
+    intensity: 25000,
     key: "back-edge",
     position: [0, 22, -92],
   },
@@ -90,8 +90,8 @@ export const LOGO_SPOT_LIGHTS: SpotLogoLight[] = [
   {
     angle: 0.99,
     color: "#ffffff",
-    intensity: 50000,
-    key: "direct-white-front",
+    intensity: 10000,
+    key: "direct-white-left",
     penumbra: 0,
     position: [-50, 0, 100],
     target: [0, 0, 0],
@@ -99,8 +99,8 @@ export const LOGO_SPOT_LIGHTS: SpotLogoLight[] = [
   {
     angle: 0.99,
     color: "#ffffff",
-    intensity: 50000,
-    key: "direct-white-front",
+    intensity: 5000,
+    key: "direct-white-right",
     penumbra: 0,
     position: [50, 0, 100],
     target: [0, 0, 0],
@@ -108,10 +108,10 @@ export const LOGO_SPOT_LIGHTS: SpotLogoLight[] = [
   {
     angle: 0.99,
     color: "#ffffff",
-    intensity: 50000,
+    intensity: 5000,
     key: "direct-white-front",
     penumbra: 0.1,
-    position: [0, 0, 100],
+    position: [0, 0, 150],
     target: [0, 0, 0],
   },
   {

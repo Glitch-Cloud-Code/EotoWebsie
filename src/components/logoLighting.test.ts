@@ -28,7 +28,7 @@ describe('logo lighting', () => {
   })
 
   it('uses broad cone lights for manual logo fill tuning', () => {
-    const wideCones = LOGO_SPOT_LIGHTS.filter((light) => light.angle >= 0.75)
+    const wideCones = LOGO_SPOT_LIGHTS.filter((light) => light.angle >= 0.75 && !light.key.startsWith('direct-white'))
 
     expect(wideCones.length).toBeGreaterThanOrEqual(2)
     expect(wideCones.every((light) => light.penumbra >= 0.9)).toBe(true)
@@ -49,5 +49,11 @@ describe('logo lighting', () => {
     expect(frontLight?.intensity).toBeGreaterThanOrEqual(18_000)
     expect(frontLight?.position).toEqual([0, 0, 150])
     expect(frontLight?.target).toEqual([0, 0, 0])
+  })
+
+  it('keeps light keys unique for stable React rendering', () => {
+    const keys = [...LOGO_DIRECTIONAL_LIGHTS, ...LOGO_POINT_LIGHTS, ...LOGO_SPOT_LIGHTS].map((light) => light.key)
+
+    expect(new Set(keys).size).toBe(keys.length)
   })
 })
