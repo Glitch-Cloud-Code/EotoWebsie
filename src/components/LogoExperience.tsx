@@ -1,8 +1,17 @@
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
-import { Canvas, useFrame, useLoader } from '@react-three/fiber'
+import { Canvas, type ThreeEvent, useFrame, useLoader } from '@react-three/fiber'
 import { ContactShadows, Html } from '@react-three/drei'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
-import { DoubleSide, Group, MathUtils, MeshPhysicalMaterial, Object3D, SpotLight as ThreeSpotLight } from 'three'
+import {
+  DoubleSide,
+  Euler,
+  Group,
+  MeshPhysicalMaterial,
+  Object3D,
+  Quaternion,
+  SpotLight as ThreeSpotLight,
+  Vector3,
+} from 'three'
 import { ParticleField } from './ParticleField'
 import { buildLogoLayout, createLogoGeometries, LOGO_HITBOX_DEPTH } from './logoGeometry'
 import {
@@ -14,7 +23,7 @@ import {
   type SpotLogoLight,
 } from './logoLighting'
 import { LOGO_RENDER_ORDER } from './logoParticles'
-import { getLogoTiltFromPointer, normalizeViewportPointer, type PointerTarget } from './logoPointer'
+import { getFlickSpinAxis, getLogoTiltFromPointer, normalizeViewportPointer, type PointerTarget } from './logoPointer'
 import { createWornMetalTexture } from './logoTexture'
 import { SceneErrorBoundary } from './SceneErrorBoundary'
 
@@ -71,8 +80,16 @@ function Model({
 }) {
   const root = useRef<Group>(null)
   const svg = useLoader(SVGLoader, svgSrc)
-  const spinState = useRef({ active: false, startY: 0, elapsed: 0 })
+  const spinState = useRef({
+    active: false,
+    axis: new Vector3(0, 1, 0),
+    elapsed: 0,
+    startQuaternion: new Quaternion(),
+  })
+  const spinQuaternion = useRef(new Quaternion())
   const targetTilt = useRef({ x: 0, y: 0 })
+  const targetTiltEuler = useRef(new Euler(0, 0, 0, 'XYZ'))
+  const targetTiltQuaternion = useRef(new Quaternion())
 
   const shapes = useMemo(
     () =>
@@ -149,26 +166,31 @@ function Model({
       const progress = Math.min(spinState.current.elapsed / 1.15, 1)
       const eased = 1 - Math.pow(1 - progress, 3)
 
-      current.rotation.x = MathUtils.lerp(current.rotation.x, targetTilt.current.x, delta * 4)
-      current.rotation.y = spinState.current.startY + eased * Math.PI * 2
+      spinQuaternion.current.setFromAxisAngle(spinState.current.axis, eased * Math.PI * 2)
+      current.quaternion.copy(spinState.current.startQuaternion).premultiply(spinQuaternion.current)
 
       if (progress >= 1) {
-        current.rotation.y -= Math.PI * 2
+        current.quaternion.copy(spinState.current.startQuaternion)
         spinState.current.active = false
       }
 
       return
     }
 
-    current.rotation.x = MathUtils.lerp(current.rotation.x, targetTilt.current.x, delta * 3.8)
-    current.rotation.y = MathUtils.lerp(current.rotation.y, targetTilt.current.y, delta * 3.8)
+    targetTiltEuler.current.set(targetTilt.current.x, targetTilt.current.y, 0)
+    targetTiltQuaternion.current.setFromEuler(targetTiltEuler.current)
+    current.quaternion.slerp(targetTiltQuaternion.current, Math.min(delta * 3.8, 1))
   })
 
-  const startSpin = () => {
+  const startSpin = (event: ThreeEvent<PointerEvent | MouseEvent>) => {
     if (!spinState.current.active && root.current) {
+      const axis = getFlickSpinAxis({ x: event.point.x, y: event.point.y })
+
+      event.stopPropagation()
       spinState.current.active = true
-      spinState.current.startY = root.current.rotation.y
+      spinState.current.axis.set(axis.x, axis.y, axis.z)
       spinState.current.elapsed = 0
+      spinState.current.startQuaternion.copy(root.current.quaternion)
     }
   }
 

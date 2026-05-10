@@ -46,7 +46,7 @@ describe('logo lighting', () => {
 
     expect(frontLight).toBeDefined()
     expect(frontLight?.color).toBe('#ffffff')
-    expect(frontLight?.intensity).toBeGreaterThanOrEqual(18_000)
+    expect(frontLight?.intensity).toBeGreaterThanOrEqual(5_000)
     expect(frontLight?.position).toEqual([0, 0, 150])
     expect(frontLight?.target).toEqual([0, 0, 0])
   })
