@@ -25,7 +25,13 @@ import {
 } from './logoLighting'
 import { LOGO_RENDER_ORDER } from './logoParticles'
 import { getFlickSpinAxis, getLogoTiltFromPointer, normalizeViewportPointer, type PointerTarget } from './logoPointer'
-import { findNearestLogoSurfacePoint, LOGO_SPARK_Z, toLogoLocalClickPoint, type Point3D } from './logoSparks'
+import {
+  findNearestLogoSurfacePoint,
+  LOGO_MODEL_SCALE,
+  toLogoLocalClickPoint,
+  toLogoScenePoint,
+  type Point3D,
+} from './logoSparks'
 import { createWornMetalTexture } from './logoTexture'
 import { SceneErrorBoundary } from './SceneErrorBoundary'
 
@@ -91,6 +97,7 @@ function Model({
   const spinQuaternion = useRef(new Quaternion())
   const sparkId = useRef(0)
   const [sparkBursts, setSparkBursts] = useState<{ id: number; origin: Point3D }[]>([])
+  const scratchVector = useRef(new Vector3())
   const targetTilt = useRef({ x: 0, y: 0 })
   const targetTiltEuler = useRef(new Euler(0, 0, 0, 'XYZ'))
   const targetTiltQuaternion = useRef(new Quaternion())
@@ -190,15 +197,22 @@ function Model({
     setSparkBursts((currentBursts) => currentBursts.filter((burst) => burst.id !== id))
   }
 
-  const addSparkBurst = (eventPoint: Point3D) => {
-    const clickPoint = toLogoLocalClickPoint(eventPoint)
+  const addSparkBurst = (eventPoint: Vector3) => {
+    if (!root.current) {
+      return
+    }
+
+    const rootLocalClick = root.current.worldToLocal(scratchVector.current.copy(eventPoint))
+    const clickPoint = toLogoLocalClickPoint(rootLocalClick)
     const nearestPoint = findNearestLogoSurfacePoint(logoLayout.surfacePoints, clickPoint)
+    const rootLocalOrigin = toLogoScenePoint(nearestPoint)
+    const worldOrigin = root.current.localToWorld(scratchVector.current.set(rootLocalOrigin.x, rootLocalOrigin.y, rootLocalOrigin.z))
     const nextBurst = {
       id: sparkId.current,
       origin: {
-        x: nearestPoint.x,
-        y: nearestPoint.y,
-        z: LOGO_SPARK_Z,
+        x: worldOrigin.x,
+        y: worldOrigin.y,
+        z: worldOrigin.z,
       },
     }
 
@@ -221,38 +235,42 @@ function Model({
   }
 
   return (
-    <group onPointerDown={startSpin} ref={root}>
-      <group scale={[0.031, -0.031, 0.031]}>
-        <mesh>
-          <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
-          <meshBasicMaterial depthWrite={false} opacity={0} transparent />
-        </mesh>
-        <ParticleField emitters={logoLayout.smokeEmitters} kind="smoke" />
-        <ParticleField emitters={logoLayout.flameEmitters} kind="flame" />
-        {sparkBursts.map((burst) => (
-          <SparkBurst id={burst.id} key={burst.id} onComplete={removeSparkBurst} origin={burst.origin} />
-        ))}
-        {geometries.map(({ geometry }, index) => (
-          <mesh
-            castShadow
-            geometry={geometry}
-            key={index}
-            material={material}
-            receiveShadow
-          />
-        ))}
-        {geometries
-          .filter(({ isWordmark }) => isWordmark)
-          .map(({ geometry }, index) => (
+    <>
+      <group onPointerDown={startSpin} ref={root}>
+        <group scale={[LOGO_MODEL_SCALE, -LOGO_MODEL_SCALE, LOGO_MODEL_SCALE]}>
+          <mesh>
+            <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
+            <meshBasicMaterial depthWrite={false} opacity={0} transparent />
+          </mesh>
+          <ParticleField emitters={logoLayout.smokeEmitters} kind="smoke" />
+          <ParticleField emitters={logoLayout.flameEmitters} kind="flame" />
+          {geometries.map(({ geometry }, index) => (
             <mesh
+              castShadow
               geometry={geometry}
-              key={`wordmark-overlay-${index}`}
-              material={textOverlayMaterial}
-              renderOrder={LOGO_RENDER_ORDER.textOverlay}
+              key={index}
+              material={material}
+              receiveShadow
             />
           ))}
+          {geometries
+            .filter(({ isWordmark }) => isWordmark)
+            .map(({ geometry }, index) => (
+              <mesh
+                geometry={geometry}
+                key={`wordmark-overlay-${index}`}
+                material={textOverlayMaterial}
+                renderOrder={LOGO_RENDER_ORDER.textOverlay}
+              />
+            ))}
+        </group>
       </group>
-    </group>
+      {sparkBursts.map((burst) => (
+        <group key={burst.id} position={[burst.origin.x, burst.origin.y, burst.origin.z]} scale={[LOGO_MODEL_SCALE, -LOGO_MODEL_SCALE, LOGO_MODEL_SCALE]}>
+          <SparkBurst id={burst.id} onComplete={removeSparkBurst} origin={{ x: 0, y: 0, z: 0 }} />
+        </group>
+      ))}
+    </>
   )
 }
 

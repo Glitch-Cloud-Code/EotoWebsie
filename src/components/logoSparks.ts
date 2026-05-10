@@ -19,6 +19,14 @@ export function toLogoLocalClickPoint(point: Point3D): Point2D {
   }
 }
 
+export function toLogoScenePoint(point: Point2D, z = LOGO_SPARK_Z): Point3D {
+  return {
+    x: point.x * LOGO_MODEL_SCALE,
+    y: point.y * -LOGO_MODEL_SCALE,
+    z: z * LOGO_MODEL_SCALE,
+  }
+}
+
 export function findNearestLogoSurfacePoint(points: Point2D[], clickPoint: Point2D): Point2D {
   if (points.length === 0) {
     return clickPoint

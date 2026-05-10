@@ -4,7 +4,9 @@ import {
   findNearestLogoSurfacePoint,
   LOGO_MODEL_SCALE,
   LOGO_SPARK_BURST_COUNT,
+  LOGO_SPARK_Z,
   toLogoLocalClickPoint,
+  toLogoScenePoint,
 } from './logoSparks'
 import { createSeededRandom } from '../utils/random'
 
@@ -13,6 +15,14 @@ describe('logo click sparks', () => {
     expect(toLogoLocalClickPoint({ x: LOGO_MODEL_SCALE * 12, y: -LOGO_MODEL_SCALE * 8, z: 0 })).toEqual({
       x: 12,
       y: 8,
+    })
+  })
+
+  it('maps logo-local spark point back into detached scene coordinates', () => {
+    expect(toLogoScenePoint({ x: 12, y: 8 })).toEqual({
+      x: LOGO_MODEL_SCALE * 12,
+      y: -LOGO_MODEL_SCALE * 8,
+      z: LOGO_MODEL_SCALE * LOGO_SPARK_Z,
     })
   })
 
