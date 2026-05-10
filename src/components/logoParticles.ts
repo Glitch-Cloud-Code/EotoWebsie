@@ -1,3 +1,5 @@
+import { createSeededRandom, type RandomFn } from '../utils/random'
+
 export type ParticleKind = 'flame' | 'smoke'
 
 export type Point2D = {
@@ -15,6 +17,17 @@ export const PARTICLE_DEPTH_CLAMP_Z = -18
 export const LOGO_RENDER_ORDER = {
   particles: 5,
   textOverlay: 6,
+} as const
+
+export const PARTICLE_RANDOM_SEED = 9103
+
+export const WORDMARK_SHAPE_BOUNDS = {
+  maxHeight: 310,
+  maxWidth: 340,
+  maxY: 1665,
+  minHeight: 36,
+  minWidth: 18,
+  minY: 1320,
 } as const
 
 export const PARTICLE_KIND_SETTINGS = {
@@ -55,12 +68,12 @@ export function isWordmarkShape(points: Point2D[]) {
   const height = maxY - minY
 
   return (
-    minY > 1320 &&
-    maxY < 1665 &&
-    width > 18 &&
-    height > 36 &&
-    width < 340 &&
-    height < 310
+    minY > WORDMARK_SHAPE_BOUNDS.minY &&
+    maxY < WORDMARK_SHAPE_BOUNDS.maxY &&
+    width > WORDMARK_SHAPE_BOUNDS.minWidth &&
+    height > WORDMARK_SHAPE_BOUNDS.minHeight &&
+    width < WORDMARK_SHAPE_BOUNDS.maxWidth &&
+    height < WORDMARK_SHAPE_BOUNDS.maxHeight
   )
 }
 
@@ -131,7 +144,7 @@ export function sampleBottomEmittersFromTextShapes(
 export function createParticleAttributes(
   emitters: Point2D[],
   kind: ParticleKind,
-  random = Math.random,
+  random: RandomFn = createSeededRandom(PARTICLE_RANDOM_SEED),
 ) {
   const settings = PARTICLE_KIND_SETTINGS[kind]
   const positions = new Float32Array(settings.count * 3)

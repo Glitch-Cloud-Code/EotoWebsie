@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react'
 import './App.css'
-import { siteContent } from './content/siteContent'
+import { formatShowDateParts, siteContent } from './content/siteContent'
 
 const LogoExperience = lazy(() =>
   import('./components/LogoExperience').then((module) => ({
@@ -32,27 +32,31 @@ function App() {
 
               {hero.shows.length > 0 ? (
                 <ul className="shows-list">
-                  {hero.shows.map((show) => (
-                    <li className="show-row" key={`${show.date}-${show.venue}-${show.city}`}>
-                      <div className="show-date">
-                        <span className="show-day">{show.day}</span>
-                        <span className="show-date-label">{show.date}</span>
-                      </div>
+                  {hero.shows.map((show) => {
+                    const showDate = formatShowDateParts(show.date)
 
-                      <div className="show-meta">
-                        <p>{show.venue}</p>
-                        <span>{show.city}</span>
-                      </div>
+                    return (
+                      <li className="show-row" key={`${show.date}-${show.venue}-${show.city}`}>
+                        <div className="show-date">
+                          <span className="show-day">{showDate.day}</span>
+                          <span className="show-date-label">{showDate.label || show.date}</span>
+                        </div>
 
-                      {show.ticketUrl ? (
-                        <a href={show.ticketUrl} target="_blank" rel="noreferrer">
-                          Tickets
-                        </a>
-                      ) : (
-                        <span className="show-status">{show.status ?? 'Details soon'}</span>
-                      )}
-                    </li>
-                  ))}
+                        <div className="show-meta">
+                          <p>{show.venue}</p>
+                          <span>{show.city}</span>
+                        </div>
+
+                        {show.ticketUrl ? (
+                          <a href={show.ticketUrl} target="_blank" rel="noreferrer">
+                            Tickets
+                          </a>
+                        ) : (
+                          <span className="show-status">{show.status ?? 'Details soon'}</span>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ul>
               ) : (
                 <div className="empty-state">

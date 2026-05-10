@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:browser": "vitest run src/**/*.browser.test.ts",
+    "test:unit": "vitest run --exclude src/**/*.browser.test.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

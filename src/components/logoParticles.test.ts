@@ -3,27 +3,21 @@ import {
   createParticleAttributes,
   isWordmarkShape,
   LOGO_RENDER_ORDER,
+  PARTICLE_RANDOM_SEED,
   PARTICLE_DEPTH_CLAMP_Z,
   PARTICLE_KIND_SETTINGS,
   sampleBottomEmittersFromTextShapes,
   spreadEmittersAcrossBand,
+  WORDMARK_SHAPE_BOUNDS,
   type Point2D,
   type ShapeSampler,
 } from './logoParticles'
+import { createSeededRandom } from '../utils/random'
 
 function shape(points: Point2D[]): ShapeSampler {
   return {
     getLength: () => 320,
     getSpacedPoints: () => points,
-  }
-}
-
-function seededRandom() {
-  let seed = 7
-
-  return () => {
-    seed = (seed * 16807) % 2147483647
-    return (seed - 1) / 2147483646
   }
 }
 
@@ -94,7 +88,7 @@ describe('logo particle emitters', () => {
 
     for (const kind of ['flame', 'smoke'] as const) {
       const settings = PARTICLE_KIND_SETTINGS[kind]
-      const { drifts, positions, scales } = createParticleAttributes(emitters, kind, seededRandom())
+      const { drifts, positions, scales } = createParticleAttributes(emitters, kind, createSeededRandom(7))
       const zValues = Array.from({ length: settings.count }, (_, index) => positions[index * 3 + 2])
       const yDrifts = Array.from({ length: settings.count }, (_, index) => drifts[index * 3 + 1])
 
@@ -116,5 +110,26 @@ describe('logo particle emitters', () => {
     expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.85)
     expect(PARTICLE_KIND_SETTINGS.flame.depthTest).toBe(false)
     expect(LOGO_RENDER_ORDER.textOverlay).toBeGreaterThan(LOGO_RENDER_ORDER.particles)
+  })
+
+  it('names asset-specific wordmark bounds instead of hiding magic numbers', () => {
+    expect(WORDMARK_SHAPE_BOUNDS).toEqual({
+      maxHeight: 310,
+      maxWidth: 340,
+      maxY: 1665,
+      minHeight: 36,
+      minWidth: 18,
+      minY: 1320,
+    })
+  })
+
+  it('uses deterministic default particle randomness', () => {
+    const emitters = [{ x: 10, y: 20 }]
+    const first = createParticleAttributes(emitters, 'flame')
+    const second = createParticleAttributes(emitters, 'flame')
+
+    expect(PARTICLE_RANDOM_SEED).toBe(9103)
+    expect(Array.from(first.positions.slice(0, 12))).toEqual(Array.from(second.positions.slice(0, 12)))
+    expect(Array.from(first.scales.slice(0, 4))).toEqual(Array.from(second.scales.slice(0, 4)))
   })
 })

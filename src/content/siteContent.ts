@@ -1,10 +1,14 @@
 export type Show = {
   city: string
   date: string
-  day: string
   status?: string
   ticketUrl?: string
   venue: string
+}
+
+export type ShowDateParts = {
+  day: string
+  label: string
 }
 
 export type VideoLink = {
@@ -53,6 +57,25 @@ export type SiteContent = {
 }
 
 const base = import.meta.env.BASE_URL
+
+const showDayFormatter = new Intl.DateTimeFormat('en', { day: '2-digit' })
+const showLabelFormatter = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' })
+
+export function formatShowDateParts(date: string): ShowDateParts {
+  const parsed = new Date(`${date}T00:00:00`)
+
+  if (Number.isNaN(parsed.valueOf())) {
+    return {
+      day: date,
+      label: '',
+    }
+  }
+
+  return {
+    day: showDayFormatter.format(parsed),
+    label: showLabelFormatter.format(parsed).toUpperCase(),
+  }
+}
 
 export const siteContent: SiteContent = {
   hero: {
