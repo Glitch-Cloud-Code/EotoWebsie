@@ -23,6 +23,7 @@ describe('logo geometry layout', () => {
 
     expect(layout.width).toBe(240 + LOGO_HITBOX_PADDING)
     expect(layout.height).toBe(120 + LOGO_HITBOX_PADDING)
+    expect(layout.surfacePoints.length).toBeGreaterThan(0)
     expect(LOGO_HITBOX_DEPTH).toBeGreaterThan(30)
   })
 })

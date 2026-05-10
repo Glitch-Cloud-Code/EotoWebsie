@@ -13,6 +13,7 @@ import {
   Vector3,
 } from 'three'
 import { ParticleField } from './ParticleField'
+import { SparkBurst } from './SparkBurst'
 import { buildLogoLayout, createLogoGeometries, LOGO_HITBOX_DEPTH } from './logoGeometry'
 import {
   LOGO_AMBIENT_LIGHT,
@@ -24,6 +25,7 @@ import {
 } from './logoLighting'
 import { LOGO_RENDER_ORDER } from './logoParticles'
 import { getFlickSpinAxis, getLogoTiltFromPointer, normalizeViewportPointer, type PointerTarget } from './logoPointer'
+import { findNearestLogoSurfacePoint, LOGO_SPARK_Z, toLogoLocalClickPoint, type Point3D } from './logoSparks'
 import { createWornMetalTexture } from './logoTexture'
 import { SceneErrorBoundary } from './SceneErrorBoundary'
 
@@ -87,6 +89,8 @@ function Model({
     startQuaternion: new Quaternion(),
   })
   const spinQuaternion = useRef(new Quaternion())
+  const sparkId = useRef(0)
+  const [sparkBursts, setSparkBursts] = useState<{ id: number; origin: Point3D }[]>([])
   const targetTilt = useRef({ x: 0, y: 0 })
   const targetTiltEuler = useRef(new Euler(0, 0, 0, 'XYZ'))
   const targetTiltQuaternion = useRef(new Quaternion())
@@ -182,11 +186,33 @@ function Model({
     current.quaternion.slerp(targetTiltQuaternion.current, Math.min(delta * 3.8, 1))
   })
 
-  const startSpin = (event: ThreeEvent<PointerEvent | MouseEvent>) => {
+  const removeSparkBurst = (id: number) => {
+    setSparkBursts((currentBursts) => currentBursts.filter((burst) => burst.id !== id))
+  }
+
+  const addSparkBurst = (eventPoint: Point3D) => {
+    const clickPoint = toLogoLocalClickPoint(eventPoint)
+    const nearestPoint = findNearestLogoSurfacePoint(logoLayout.surfacePoints, clickPoint)
+    const nextBurst = {
+      id: sparkId.current,
+      origin: {
+        x: nearestPoint.x,
+        y: nearestPoint.y,
+        z: LOGO_SPARK_Z,
+      },
+    }
+
+    sparkId.current += 1
+    setSparkBursts((currentBursts) => [...currentBursts.slice(-5), nextBurst])
+  }
+
+  const startSpin = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    addSparkBurst(event.point)
+
     if (!spinState.current.active && root.current) {
       const axis = getFlickSpinAxis({ x: event.point.x, y: event.point.y })
 
-      event.stopPropagation()
       spinState.current.active = true
       spinState.current.axis.set(axis.x, axis.y, axis.z)
       spinState.current.elapsed = 0
@@ -195,7 +221,7 @@ function Model({
   }
 
   return (
-    <group onClick={startSpin} onPointerDown={startSpin} ref={root}>
+    <group onPointerDown={startSpin} ref={root}>
       <group scale={[0.031, -0.031, 0.031]}>
         <mesh>
           <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
@@ -203,6 +229,9 @@ function Model({
         </mesh>
         <ParticleField emitters={logoLayout.smokeEmitters} kind="smoke" />
         <ParticleField emitters={logoLayout.flameEmitters} kind="flame" />
+        {sparkBursts.map((burst) => (
+          <SparkBurst id={burst.id} key={burst.id} onComplete={removeSparkBurst} origin={burst.origin} />
+        ))}
         {geometries.map(({ geometry }, index) => (
           <mesh
             castShadow

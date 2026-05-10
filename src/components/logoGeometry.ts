@@ -12,6 +12,7 @@ export type LogoLayout = {
   flameEmitters: Point2D[]
   height: number
   smokeEmitters: Point2D[]
+  surfacePoints: Point2D[]
   width: number
 }
 
@@ -65,6 +66,7 @@ export function buildLogoLayout(shapes: Shape[]): LogoLayout {
       smokeBandPoints.length > 0
         ? spreadEmittersAcrossBand(smokeBandPoints, 22, 'center')
         : spreadEmittersAcrossBand(centeredEmitters, 22, 'center'),
+    surfacePoints: centeredEmitters,
     width: bounds.maxX - bounds.minX + LOGO_HITBOX_PADDING,
   }
 }
