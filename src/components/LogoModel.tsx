@@ -18,11 +18,19 @@ type LogoModelProps = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
   modelSrc: string
+  reduceMotion: boolean
+  spinRequest: number
 }
 
 const logoLayout: LogoLayout = logoMetadata
 
-export function LogoModel({ globalPointer, isTouch, modelSrc }: LogoModelProps) {
+export function LogoModel({
+  globalPointer,
+  isTouch,
+  modelSrc,
+  reduceMotion,
+  spinRequest,
+}: LogoModelProps) {
   const root = useRef<Group>(null)
   const { scene: sourceScene } = useGLTF(modelSrc)
   const texture = useMemo(() => createWornMetalTexture(), [])
@@ -56,7 +64,9 @@ export function LogoModel({ globalPointer, isTouch, modelSrc }: LogoModelProps) 
     globalPointer,
     isTouch,
     logoLayout,
+    reduceMotion,
     root,
+    spinRequest,
   })
 
   useEffect(() => {
@@ -76,15 +86,19 @@ export function LogoModel({ globalPointer, isTouch, modelSrc }: LogoModelProps) 
             onPointerDown={startSpin}
           />
         </group>
-        <group name="logo-svg-effects-transform" scale={LOGO_EFFECTS_TRANSFORM_SCALE}>
-          <AttachedLogoEffects logoLayout={logoLayout} />
-        </group>
+        {!reduceMotion ? (
+          <group name="logo-svg-effects-transform" scale={LOGO_EFFECTS_TRANSFORM_SCALE}>
+            <AttachedLogoEffects logoLayout={logoLayout} />
+          </group>
+        ) : null}
       </group>
-      <DetachedLogoEffects
-        logoLayout={logoLayout}
-        onSparkComplete={removeSparkBurst}
-        sparkBursts={sparkBursts}
-      />
+      {!reduceMotion ? (
+        <DetachedLogoEffects
+          logoLayout={logoLayout}
+          onSparkComplete={removeSparkBurst}
+          sparkBursts={sparkBursts}
+        />
+      ) : null}
     </>
   )
 }

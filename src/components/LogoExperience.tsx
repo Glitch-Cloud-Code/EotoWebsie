@@ -23,6 +23,8 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
   const globalPointer = useRef<PointerTarget>({ x: 0, y: 0 })
   const [hasError, setHasError] = useState(false)
   const [isTouch, setIsTouch] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [spinRequest, setSpinRequest] = useState(0)
   const canUseWebGL = useMemo(() => supportsWebGL(), [])
   const glOptions = useMemo(
     () => ({
@@ -50,13 +52,31 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
       return
     }
 
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const update = () => setPrefersReducedMotion(media.matches)
+    update()
+
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
     const updatePointer = (event: PointerEvent) => {
+      if (prefersReducedMotion) {
+        globalPointer.current = { x: 0, y: 0 }
+        return
+      }
+
       globalPointer.current = normalizeViewportPointer(event.clientX, event.clientY, window.innerWidth, window.innerHeight)
     }
 
     window.addEventListener('pointermove', updatePointer, { passive: true })
     return () => window.removeEventListener('pointermove', updatePointer)
-  }, [])
+  }, [prefersReducedMotion])
 
   if (hasError || !canUseWebGL) {
     return (
@@ -75,7 +95,25 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
       }
       onError={() => setHasError(true)}
     >
-      <div className="logo-canvas-shell">
+      <div
+        aria-label={
+          prefersReducedMotion
+            ? 'Echoes Of The Orion three-dimensional logo'
+            : 'Interactive Echoes Of The Orion logo. Press Enter or Space to rotate.'
+        }
+        className="logo-canvas-shell"
+        onKeyDown={(event) => {
+          if (
+            !prefersReducedMotion &&
+            (event.key === 'Enter' || event.key === ' ')
+          ) {
+            event.preventDefault()
+            setSpinRequest((current) => current + 1)
+          }
+        }}
+        role={prefersReducedMotion ? 'img' : 'button'}
+        tabIndex={prefersReducedMotion ? -1 : 0}
+      >
         <Canvas
           camera={{ fov: 26, position: [0, 0, 170] }}
           dpr={[1, 2]}
@@ -86,6 +124,8 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
             globalPointer={globalPointer}
             isTouch={isTouch}
             modelSrc={`${import.meta.env.BASE_URL}assets/logo/logo.glb`}
+            reduceMotion={prefersReducedMotion}
+            spinRequest={spinRequest}
           />
         </Canvas>
       </div>

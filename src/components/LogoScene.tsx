@@ -54,9 +54,17 @@ type LogoSceneProps = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
   modelSrc: string
+  reduceMotion: boolean
+  spinRequest: number
 }
 
-export function LogoScene({ globalPointer, isTouch, modelSrc }: LogoSceneProps) {
+export function LogoScene({
+  globalPointer,
+  isTouch,
+  modelSrc,
+  reduceMotion,
+  spinRequest,
+}: LogoSceneProps) {
   return (
     <>
       <fog args={['#0a0708', 95, 255]} attach="fog" />
@@ -90,6 +98,8 @@ export function LogoScene({ globalPointer, isTouch, modelSrc }: LogoSceneProps) 
           globalPointer={globalPointer}
           isTouch={isTouch}
           modelSrc={modelSrc}
+          reduceMotion={reduceMotion}
+          spinRequest={spinRequest}
         />
       </Suspense>
       <ContactShadows blur={2.8} color="#26090c" opacity={0.42} position={[0, -58, 0]} />

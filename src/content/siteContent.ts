@@ -36,6 +36,7 @@ export type VideoLink = {
 
 export type PhotoAsset = {
   alt: string
+  caption: string
   priority?: boolean
   src: string
 }
@@ -48,6 +49,7 @@ export type SiteContent = {
   }
   footer: {
     kicker: string
+    note: string
     title: string
   }
   gallery: PhotoAsset[]
@@ -65,6 +67,8 @@ export type SiteContent = {
   videos: {
     featured: {
       description: string
+      image: string
+      imageAlt: string
       kicker: string
       title: string
       url: string
@@ -132,9 +136,9 @@ export const siteContent: SiteContent = {
   hero: {
     eyebrow: 'Melodic metal from Latvia',
     title: 'Echoes Of The Orion',
-    quote: '"Never being bored has a terrible price."',
+    quote: 'Never being bored has a terrible price',
     intro:
-      'Heavy, melodic, and built for rooms that want atmosphere before impact. This page keeps the signal clean: where to catch the band, where to watch, and where the orbit goes next.',
+      'Heavy melody, sharp edges, and open space. Follow the next live date and latest transmission.',
     shows: [],
   },
   videos: {
@@ -142,7 +146,9 @@ export const siteContent: SiteContent = {
       kicker: 'Featured watch',
       title: 'Official channel',
       description:
-        'Releases, live cuts, and whatever rises next from the set. The channel is the first stop for the moving picture side of the band.',
+        'Releases, live cuts, and the next moving picture from the band.',
+      image: `${base}assets/gallery/logo-mockup.jpg`,
+      imageAlt: 'Echoes Of The Orion metallic logo artwork',
       url: 'https://youtube.com/@echoesoftheorion?si=PHvCrsPm1_OZV35t',
     },
     links: [
@@ -169,19 +175,18 @@ export const siteContent: SiteContent = {
   gallery: [
     {
       alt: 'Three-dimensional Echoes Of The Orion logo mockup',
+      caption: 'The mark in metal',
       priority: true,
       src: `${base}assets/gallery/logo-mockup.jpg`,
     },
     {
-      alt: 'Echoes Of The Orion logo detail artwork',
-      src: `${base}assets/gallery/logo-detail.jpg`,
-    },
-    {
       alt: 'Illustrated falling figure artwork',
+      caption: 'Everyday - full artwork',
       src: `${base}assets/gallery/everyday-full.png`,
     },
     {
       alt: 'Illustrated portrait artwork',
+      caption: 'Everyday - figure study',
       src: `${base}assets/gallery/everyday-man.png`,
     },
   ],
@@ -197,6 +202,7 @@ export const siteContent: SiteContent = {
   ],
   footer: {
     kicker: 'Connect',
-    title: 'Booking, releases, and the next signal.',
+    note: 'Releases, live cuts, and show announcements land on the official channels.',
+    title: 'Follow the next signal.',
   },
 }

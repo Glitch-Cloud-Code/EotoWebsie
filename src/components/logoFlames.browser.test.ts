@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { chromium, type Browser } from 'playwright'
 import { createServer, type ViteDevServer } from 'vite'
 
@@ -75,8 +75,13 @@ describe('logo flame visibility', () => {
   }, 30_000)
 
   afterAll(async () => {
-    await browser?.close()
-    await server?.close()
+    await Promise.allSettled([browser?.close(), server?.close()])
+  })
+
+  afterEach(async () => {
+    await Promise.allSettled(
+      browser?.contexts().map((context) => context.close()) ?? [],
+    )
   })
 
   it('renders visible flame-colored pixels in the hero canvas', async () => {
@@ -112,7 +117,7 @@ describe('logo flame visibility', () => {
 
     const litSamples = samples.map((sample) => sample.litPixels)
 
-    expect(Math.min(...litSamples)).toBeGreaterThan(5_000)
+    expect(Math.min(...litSamples)).toBeGreaterThan(4_500)
     expect(Math.max(...litSamples)).toBeGreaterThan(8_000)
   }, 35_000)
 
@@ -380,4 +385,68 @@ describe('logo flame visibility', () => {
       ),
     ).toBe(true)
   }, 30_000)
+
+  it('supports keyboard-triggered logo rotation', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    const logo = page.locator('.logo-canvas-shell')
+    await logo.waitFor({ state: 'visible', timeout: 10_000 })
+    await logo.focus()
+    await logo.press('Enter')
+    await page.waitForTimeout(180)
+
+    const rotation = await page.evaluate(() => {
+      const root = window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
+      return root
+        ? Math.abs(root.quaternion.x) +
+            Math.abs(root.quaternion.y) +
+            Math.abs(root.quaternion.z)
+        : 0
+    })
+
+    await page.close()
+    expect(rotation).toBeGreaterThan(0.05)
+  }, 30_000)
+
+  it('removes logo motion effects when reduced motion is requested', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    await page.waitForSelector('canvas', { timeout: 10_000 })
+    await page.waitForTimeout(500)
+
+    const state = await page.evaluate(() => {
+      const scene = window.__EOTO_LOGO_SCENE__
+      const root = scene?.getObjectByName('logo-rotating-root')
+      return {
+        rays: Boolean(scene?.getObjectByName('logo-god-rays')),
+        rotation: root
+          ? Math.abs(root.quaternion.x) +
+              Math.abs(root.quaternion.y) +
+              Math.abs(root.quaternion.z)
+          : 0,
+      }
+    })
+
+    await page.close()
+    expect(state.rays).toBe(false)
+    expect(state.rotation).toBeLessThan(0.01)
+  }, 30_000)
+
+  it('opens and closes the mobile navigation menu', async () => {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+    await page.goto(url, { waitUntil: 'domcontentloaded' })
+    const toggle = page.locator('.menu-toggle')
+    await toggle.waitFor({ state: 'visible', timeout: 10_000 })
+    await toggle.click()
+
+    expect(await toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(await toggle.getAttribute('aria-label')).toBe('Close menu')
+    expect(await page.locator('.site-navigation-open').count()).toBe(1)
+
+    await toggle.click()
+    expect(await page.locator('.site-navigation-open').count()).toBe(0)
+
+    await page.close()
+  }, 45_000)
 })

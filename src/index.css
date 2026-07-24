@@ -5,13 +5,22 @@
 }
 
 :root {
+  --color-background: #050506;
+  --color-surface: #0a0a0c;
+  --color-text: #f3efe8;
+  --color-muted: #c5bfb6;
+  --color-dim: #98938b;
+  --color-steel: #b9c2c9;
+  --color-red: #941820;
+  --color-red-light: #e2787f;
+  --color-line: rgba(185, 194, 201, 0.11);
+  --color-line-strong: rgba(185, 194, 201, 0.22);
+  --content-width: 75rem;
   font-family: Inter, 'Segoe UI', sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #f4efe6;
+  color: var(--color-text);
   background:
-    radial-gradient(circle at top, rgba(130, 18, 24, 0.15), transparent 42%),
-    linear-gradient(180deg, #050506 0%, #09090b 52%, #040405 100%);
+    linear-gradient(115deg, rgba(109, 14, 20, 0.12), transparent 30%),
+    linear-gradient(180deg, #050506 0%, #08080a 58%, #040405 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -24,23 +33,33 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
-  margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  margin: 0;
   background:
-    radial-gradient(circle at top, rgba(130, 18, 24, 0.15), transparent 42%),
-    linear-gradient(180deg, #050506 0%, #09090b 52%, #040405 100%);
+    linear-gradient(115deg, rgba(109, 14, 20, 0.12), transparent 30%),
+    linear-gradient(180deg, #050506 0%, #08080a 58%, #040405 100%);
 }
 
 button,
 a {
-  transition:
-    transform 160ms ease,
-    background 160ms ease,
-    border-color 160ms ease;
+  font: inherit;
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--color-red-light);
+  outline-offset: 4px;
 }
 
 img {
@@ -49,4 +68,10 @@ img {
 
 #root {
   min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

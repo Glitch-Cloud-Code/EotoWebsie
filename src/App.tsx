@@ -1,4 +1,14 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useState } from 'react'
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarDays,
+  Menu,
+  Music2,
+  Play,
+  X,
+  Youtube,
+} from 'lucide-react'
 import './App.css'
 import { formatShowDateParts, siteContent } from './content/siteContent'
 
@@ -8,26 +18,79 @@ const LogoExperience = lazy(() =>
   })),
 )
 
+const navigation = [
+  { href: '#shows', label: 'Shows' },
+  { href: '#watch', label: 'Watch' },
+  { href: '#band', label: 'Band' },
+  { href: '#connect', label: 'Connect' },
+]
+
+function SocialIcon({ kind }: { kind: string }) {
+  return kind === 'YouTube' ? (
+    <Youtube aria-hidden="true" size={18} strokeWidth={1.7} />
+  ) : (
+    <Music2 aria-hidden="true" size={18} strokeWidth={1.7} />
+  )
+}
+
 function App() {
   const { hero, videos, about, gallery, links, footer } = siteContent
+  const [menuOpen, setMenuOpen] = useState(false)
+  const closeMenu = () => setMenuOpen(false)
 
   return (
     <div className="site-shell">
-      <div className="page-glow page-glow-left" aria-hidden="true" />
-      <div className="page-glow page-glow-right" aria-hidden="true" />
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
 
-      <main>
-        <section className="hero-section">
+      <header className="site-header">
+        <div className="site-header-inner">
+          <a className="site-brand" href="#top" onClick={closeMenu}>
+            <span className="brand-monogram" aria-hidden="true">EOTO</span>
+            <span className="brand-name">Echoes Of The Orion</span>
+          </a>
+
+          <nav
+            aria-label="Primary navigation"
+            className={`site-navigation ${menuOpen ? 'site-navigation-open' : ''}`}
+            id="primary-navigation"
+          >
+            {navigation.map((item) => (
+              <a href={item.href} key={item.href} onClick={closeMenu}>
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <button
+            aria-controls="primary-navigation"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            className="menu-toggle"
+            onClick={() => setMenuOpen((current) => !current)}
+            type="button"
+          >
+            {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content">
+        <section className="hero-section" id="top">
           <div className="hero-copy">
             <p className="eyebrow">{hero.eyebrow}</p>
             <h1>{hero.title}</h1>
-            {hero.quote ? <p className="hero-quote">{hero.quote}</p> : null}
+            {hero.quote ? <p className="hero-statement">{hero.quote}</p> : null}
             <p className="hero-intro">{hero.intro}</p>
 
-            <div className="shows-block">
-              <div className="section-heading">
-                <span />
-                <h2>Upcoming concerts</h2>
+            <div aria-labelledby="shows-title" className="shows-block" id="shows">
+              <div className="shows-heading">
+                <div>
+                  <span className="section-index">Live</span>
+                  <h2 id="shows-title">Upcoming concerts</h2>
+                </div>
+                <CalendarDays aria-hidden="true" size={21} strokeWidth={1.5} />
               </div>
 
               {hero.shows.length > 0 ? (
@@ -51,6 +114,7 @@ function App() {
                         {show.ticketUrl ? (
                           <a href={show.ticketUrl} target="_blank" rel="noreferrer">
                             Tickets
+                            <ArrowUpRight aria-hidden="true" size={16} />
                           </a>
                         ) : (
                           <span className="show-status">{show.status ?? 'Details soon'}</span>
@@ -61,8 +125,14 @@ function App() {
                 </ul>
               ) : (
                 <div className="empty-state">
-                  <p>No dates announced yet.</p>
-                  <span>Booking and routing updates land here first.</span>
+                  <div>
+                    <p>No dates announced.</p>
+                    <span>New live dates will appear here first.</span>
+                  </div>
+                  <a href="#watch">
+                    Watch while you wait
+                    <ArrowDownRight aria-hidden="true" size={16} />
+                  </a>
                 </div>
               )}
             </div>
@@ -88,51 +158,62 @@ function App() {
           </div>
         </section>
 
-        <section className="content-band content-band-video" id="video">
+        <section className="content-band watch-section" id="watch">
           <div className="section-heading">
-            <span />
-            <h2>Video</h2>
+            <span className="section-index">01</span>
+            <h2>Watch</h2>
           </div>
 
-          <div className="video-grid">
-            <article className="featured-video">
-              <p className="section-kicker">{videos.featured.kicker}</p>
-              <h3>{videos.featured.title}</h3>
-              <p>{videos.featured.description}</p>
-              {videos.featured.url ? (
-                <a href={videos.featured.url} target="_blank" rel="noreferrer">
-                  Watch now
-                </a>
-              ) : (
-                <span className="inline-note">Video link landing soon.</span>
-              )}
-            </article>
+          <a
+            aria-label={`Watch ${videos.featured.title}`}
+            className="featured-watch"
+            href={videos.featured.url}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <img alt={videos.featured.imageAlt} src={videos.featured.image} />
+            <span className="featured-watch-shade" aria-hidden="true" />
+            <span className="featured-watch-content">
+              <span className="play-control">
+                <Play aria-hidden="true" fill="currentColor" size={20} />
+              </span>
+              <span>
+                <small>{videos.featured.kicker}</small>
+                <strong>{videos.featured.title}</strong>
+                <span>{videos.featured.description}</span>
+              </span>
+              <ArrowUpRight aria-hidden="true" className="featured-watch-arrow" />
+            </span>
+          </a>
 
-            <div className="video-links">
-              {videos.links.map((video) => (
-                <a
-                  className="video-link"
-                  href={video.url}
-                  key={`${video.kind}-${video.title}`}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <span>{video.kind}</span>
+          <div className="platform-links" aria-label="Streaming links">
+            {videos.links.map((video) => (
+              <a
+                className="platform-link"
+                href={video.url}
+                key={`${video.kind}-${video.title}`}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <SocialIcon kind={video.kind} />
+                <span>
+                  <small>{video.kind}</small>
                   <strong>{video.title}</strong>
-                </a>
-              ))}
-            </div>
+                </span>
+                <ArrowUpRight aria-hidden="true" size={18} />
+              </a>
+            ))}
           </div>
         </section>
 
-        <section className="content-band" id="about">
+        <section className="content-band band-section" id="band">
           <div className="section-heading">
-            <span />
+            <span className="section-index">02</span>
             <h2>Band</h2>
           </div>
 
           <div className="about-layout">
-            <div>
+            <div className="about-title">
               <p className="section-kicker">{about.kicker}</p>
               <h3>{about.title}</h3>
             </div>
@@ -145,37 +226,46 @@ function App() {
           </div>
         </section>
 
-        <section className="content-band" id="gallery">
+        <section className="content-band gallery-section" id="visuals">
           <div className="section-heading">
-            <span />
+            <span className="section-index">03</span>
             <h2>Visuals</h2>
           </div>
 
           <div className="gallery-grid">
-            {gallery.map((photo) => (
+            {gallery.map((photo, index) => (
               <figure
-                className={`gallery-card ${photo.priority ? 'gallery-card-priority' : ''}`}
+                className={`gallery-item gallery-item-${index + 1}`}
                 key={photo.src}
               >
                 <img alt={photo.alt} loading={photo.priority ? 'eager' : 'lazy'} src={photo.src} />
+                <figcaption>{photo.caption}</figcaption>
               </figure>
             ))}
           </div>
         </section>
 
-        <footer className="content-band site-footer">
-          <div>
+        <footer className="site-footer" id="connect">
+          <div className="footer-copy">
             <p className="section-kicker">{footer.kicker}</p>
             <h2>{footer.title}</h2>
+            <p>{footer.note}</p>
           </div>
 
           <div className="footer-links">
             {links.map((link) => (
               <a href={link.url} key={link.label} rel="noreferrer" target="_blank">
-                {link.label}
+                <SocialIcon kind={link.label} />
+                <span>{link.label}</span>
+                <ArrowUpRight aria-hidden="true" size={17} />
               </a>
             ))}
           </div>
+
+          <a className="back-to-top" href="#top">
+            Back to top
+            <ArrowUpRight aria-hidden="true" size={16} />
+          </a>
         </footer>
       </main>
     </div>

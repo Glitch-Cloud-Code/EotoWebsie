@@ -28,9 +28,9 @@ export const LOGO_WORDMARK_SHAPE_INDICES = Array.from(
 
 export const PARTICLE_KIND_SETTINGS = {
   flame: {
-    alphaMultiplier: 0.9,
+    alphaMultiplier: 0.78,
     count: 320,
-    depthTest: false,
+    depthTest: true,
     driftY: [220, 400],
     driftZ: 70,
     fadeOutStart: 0.94,
@@ -40,7 +40,7 @@ export const PARTICLE_KIND_SETTINGS = {
   smoke: {
     alphaMultiplier: 0.24,
     count: 220,
-    depthTest: false,
+    depthTest: true,
     driftY: [176, 336],
     driftZ: 110,
     fadeOutStart: 0.94,

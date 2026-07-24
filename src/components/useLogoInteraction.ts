@@ -1,4 +1,4 @@
-import { useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import { type ThreeEvent, useFrame } from '@react-three/fiber'
 import { Euler, Group, Quaternion, Vector3 } from 'three'
 import type { LogoLayout } from './logoGeometry'
@@ -19,14 +19,18 @@ type LogoInteractionOptions = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
   logoLayout: LogoLayout
+  reduceMotion: boolean
   root: RefObject<Group | null>
+  spinRequest: number
 }
 
 export function useLogoInteraction({
   globalPointer,
   isTouch,
   logoLayout,
+  reduceMotion,
   root,
+  spinRequest,
 }: LogoInteractionOptions) {
   const spinState = useRef({
     active: false,
@@ -42,9 +46,32 @@ export function useLogoInteraction({
   const targetTiltEuler = useRef(new Euler(0, 0, 0, 'XYZ'))
   const targetTiltQuaternion = useRef(new Quaternion())
 
+  useEffect(() => {
+    if (
+      reduceMotion ||
+      spinRequest === 0 ||
+      spinState.current.active ||
+      !root.current
+    ) {
+      return
+    }
+
+    spinState.current.active = true
+    spinState.current.axis.set(0, 1, 0)
+    spinState.current.elapsed = 0
+    spinState.current.startQuaternion.copy(root.current.quaternion)
+  }, [reduceMotion, root, spinRequest])
+
   useFrame((_, delta) => {
     const current = root.current
     if (!current) {
+      return
+    }
+
+    if (reduceMotion) {
+      spinState.current.active = false
+      targetTiltQuaternion.current.identity()
+      current.quaternion.slerp(targetTiltQuaternion.current, Math.min(delta * 8, 1))
       return
     }
 
@@ -109,6 +136,10 @@ export function useLogoInteraction({
 
   const startSpin = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
+    if (reduceMotion) {
+      return
+    }
+
     addSparkBurst(event.point)
 
     if (!spinState.current.active && root.current) {

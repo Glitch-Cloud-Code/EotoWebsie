@@ -91,8 +91,8 @@ describe('logo particle emitters', () => {
   })
 
   it('keeps flames visible while preserving text readability', () => {
-    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.85)
-    expect(PARTICLE_KIND_SETTINGS.flame.depthTest).toBe(false)
+    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.7)
+    expect(PARTICLE_KIND_SETTINGS.flame.depthTest).toBe(true)
     expect(LOGO_RENDER_ORDER.textOverlay).toBeGreaterThan(LOGO_RENDER_ORDER.particles)
   })
 
