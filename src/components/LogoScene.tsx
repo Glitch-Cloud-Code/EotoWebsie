@@ -2,13 +2,15 @@ import { Suspense, useLayoutEffect, useRef, type RefObject } from 'react'
 import { ContactShadows, Html } from '@react-three/drei'
 import { Object3D, SpotLight as ThreeSpotLight } from 'three'
 import {
+  type SpotLogoLight,
+} from './logoLighting'
+import {
   LOGO_AMBIENT_LIGHT,
   LOGO_DIRECTIONAL_LIGHTS,
   LOGO_HEMISPHERE_LIGHT,
   LOGO_POINT_LIGHTS,
   LOGO_SPOT_LIGHTS,
-  type SpotLogoLight,
-} from './logoLighting'
+} from './logoSceneConfig'
 import { LogoModel } from './LogoModel'
 import type { PointerTarget } from './logoPointer'
 
