@@ -118,7 +118,9 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
           camera={{ fov: 26, position: [0, 0, 170] }}
           dpr={[1, 2]}
           gl={glOptions}
-          onCreated={({ scene }) => installLogoSceneProbe(scene)}
+          onCreated={({ camera, gl, scene }) =>
+            installLogoSceneProbe(scene, camera, gl)
+          }
         >
           <LogoScene
             globalPointer={globalPointer}

@@ -154,6 +154,7 @@ export function ParticleField({ emitters, kind }: ParticleFieldProps) {
       frustumCulled={false}
       geometry={geometry}
       material={material}
+      name={`logo-${kind}-particles`}
       ref={pointsRef}
       renderOrder={LOGO_RENDER_ORDER.particles}
     />

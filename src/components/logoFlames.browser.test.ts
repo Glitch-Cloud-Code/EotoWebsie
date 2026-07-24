@@ -121,6 +121,72 @@ describe('logo flame visibility', () => {
     expect(Math.max(...litSamples)).toBeGreaterThan(8_000)
   }, 35_000)
 
+  it('keeps bare metal visible at representative rotations', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    await page.waitForSelector('canvas', { timeout: 10_000 })
+    await page.waitForTimeout(800)
+
+    const samples = await page.evaluate(() => {
+      const scene = window.__EOTO_LOGO_SCENE__
+      const root = scene?.getObjectByName('logo-rotating-root')
+      const canvas = document.querySelector('canvas')
+      const gl =
+        canvas?.getContext('webgl2', { preserveDrawingBuffer: true }) ??
+        canvas?.getContext('webgl', { preserveDrawingBuffer: true })
+
+      if (!scene || !root || !canvas || !gl || !window.__EOTO_RENDER_LOGO_FRAME__) {
+        throw new Error('Logo diagnostics unavailable')
+      }
+
+      for (const name of [
+        'logo-flame-particles',
+        'logo-smoke-particles',
+        'logo-god-rays',
+      ]) {
+        const effect = scene.getObjectByName(name)
+        if (effect) {
+          effect.visible = false
+        }
+      }
+
+      return [0, 45, 90, 135, 180].map((degrees) => {
+        const radians = (degrees * Math.PI) / 180
+        root.quaternion.set(0, Math.sin(radians / 2), 0, Math.cos(radians / 2))
+        window.__EOTO_RENDER_LOGO_FRAME__?.()
+
+        const pixels = new Uint8Array(canvas.width * canvas.height * 4)
+        gl.readPixels(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          pixels,
+        )
+
+        let litPixels = 0
+        for (let index = 0; index < pixels.length; index += 4) {
+          if (
+            pixels[index + 3] > 20 &&
+            pixels[index] + pixels[index + 1] + pixels[index + 2] > 185
+          ) {
+            litPixels += 1
+          }
+        }
+
+        return { degrees, litPixels }
+      })
+    })
+
+    await page.close()
+
+    expect(samples).toHaveLength(5)
+    expect(samples[0].litPixels).toBeGreaterThan(4_000)
+    expect(Math.min(...samples.map((sample) => sample.litPixels))).toBeGreaterThan(700)
+  }, 30_000)
+
   it('uses the full logo hitbox when clicking outside visible geometry', async () => {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
     await page.goto(url, { waitUntil: 'networkidle' })
