@@ -14,6 +14,7 @@ import {
 } from 'three'
 import { ParticleField } from './ParticleField'
 import { SparkBurst } from './SparkBurst'
+import { GodRays } from './GodRays'
 import { buildLogoLayout, createLogoGeometries, LOGO_HITBOX_DEPTH } from './logoGeometry'
 import {
   LOGO_AMBIENT_LIGHT,
@@ -265,6 +266,7 @@ function Model({
             ))}
         </group>
       </group>
+      <GodRays height={logoLayout.height} width={logoLayout.width} />
       {sparkBursts.map((burst) => (
         <group key={burst.id} position={[burst.origin.x, burst.origin.y, burst.origin.z]} scale={[LOGO_MODEL_SCALE, -LOGO_MODEL_SCALE, LOGO_MODEL_SCALE]}>
           <SparkBurst id={burst.id} onComplete={removeSparkBurst} origin={{ x: 0, y: 0, z: 0 }} />
