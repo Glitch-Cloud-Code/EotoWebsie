@@ -265,15 +265,6 @@ footer {
   place-items: center;
 }
 
-.hero-logo-pane::before {
-  position: absolute;
-  z-index: 0;
-  width: 78%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(185, 194, 201, 0.3), transparent);
-  content: '';
-}
-
 .logo-canvas-shell,
 .logo-fallback-shell {
   position: relative;
