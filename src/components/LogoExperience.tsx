@@ -80,7 +80,6 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
             globalPointer={globalPointer}
             isTouch={isTouch}
             modelSrc={`${import.meta.env.BASE_URL}assets/logo/logo.glb`}
-            svgSrc={fallbackSrc}
           />
         </Canvas>
       </div>

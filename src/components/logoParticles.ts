@@ -21,14 +21,10 @@ export const LOGO_RENDER_ORDER = {
 
 export const PARTICLE_RANDOM_SEED = 9103
 
-export const WORDMARK_SHAPE_BOUNDS = {
-  maxHeight: 310,
-  maxWidth: 340,
-  maxY: 1665,
-  minHeight: 36,
-  minWidth: 18,
-  minY: 1320,
-} as const
+export const LOGO_WORDMARK_SHAPE_INDICES = Array.from(
+  { length: 24 },
+  (_, index) => index,
+)
 
 export const PARTICLE_KIND_SETTINGS = {
   flame: {
@@ -52,30 +48,6 @@ export const PARTICLE_KIND_SETTINGS = {
     startZ: [-110, -36],
   },
 } as const
-
-export function isWordmarkShape(points: Point2D[]) {
-  if (points.length === 0) {
-    return false
-  }
-
-  const xs = points.map((point) => point.x)
-  const ys = points.map((point) => point.y)
-  const minX = Math.min(...xs)
-  const maxX = Math.max(...xs)
-  const minY = Math.min(...ys)
-  const maxY = Math.max(...ys)
-  const width = maxX - minX
-  const height = maxY - minY
-
-  return (
-    minY > WORDMARK_SHAPE_BOUNDS.minY &&
-    maxY < WORDMARK_SHAPE_BOUNDS.maxY &&
-    width > WORDMARK_SHAPE_BOUNDS.minWidth &&
-    height > WORDMARK_SHAPE_BOUNDS.minHeight &&
-    width < WORDMARK_SHAPE_BOUNDS.maxWidth &&
-    height < WORDMARK_SHAPE_BOUNDS.maxHeight
-  )
-}
 
 export function spreadEmittersAcrossBand(
   points: Point2D[],
@@ -116,14 +88,17 @@ export function sampleBottomEmittersFromTextShapes(
   shapes: ShapeSampler[],
   centerX: number,
   centerY: number,
+  wordmarkShapeIndices: readonly number[] = LOGO_WORDMARK_SHAPE_INDICES,
 ): Point2D[] {
-  return shapes.flatMap((shape) => {
-    const points = shape.getSpacedPoints(Math.max(28, Math.floor(shape.getLength() / 8)))
-    if (points.length === 0) {
+  const wordmarkShapes = new Set(wordmarkShapeIndices)
+
+  return shapes.flatMap((shape, shapeIndex) => {
+    if (!wordmarkShapes.has(shapeIndex)) {
       return []
     }
 
-    if (!isWordmarkShape(points)) {
+    const points = shape.getSpacedPoints(Math.max(28, Math.floor(shape.getLength() / 8)))
+    if (points.length === 0) {
       return []
     }
 

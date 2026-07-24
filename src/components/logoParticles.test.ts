@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   createParticleAttributes,
-  isWordmarkShape,
+  LOGO_WORDMARK_SHAPE_INDICES,
   LOGO_RENDER_ORDER,
   PARTICLE_RANDOM_SEED,
   PARTICLE_DEPTH_CLAMP_Z,
   PARTICLE_KIND_SETTINGS,
   sampleBottomEmittersFromTextShapes,
   spreadEmittersAcrossBand,
-  WORDMARK_SHAPE_BOUNDS,
   type Point2D,
   type ShapeSampler,
 } from './logoParticles'
@@ -37,33 +36,18 @@ describe('logo particle emitters', () => {
       { x: 100, y: 2300 },
     ])
 
-    const emitters = sampleBottomEmittersFromTextShapes([textLetter, decorativeGeometry], 100, 1400)
+    const emitters = sampleBottomEmittersFromTextShapes(
+      [textLetter, decorativeGeometry],
+      100,
+      1400,
+      [0],
+    )
 
     expect(emitters).toEqual([
       { x: 60, y: 240 },
       { x: 0, y: 240 },
       { x: 30, y: 220 },
     ])
-  })
-
-  it('classifies wordmark geometry separately from decorative geometry', () => {
-    expect(
-      isWordmarkShape([
-        { x: 100, y: 1400 },
-        { x: 160, y: 1400 },
-        { x: 160, y: 1640 },
-        { x: 100, y: 1640 },
-      ]),
-    ).toBe(true)
-
-    expect(
-      isWordmarkShape([
-        { x: 100, y: 1700 },
-        { x: 500, y: 1700 },
-        { x: 500, y: 2300 },
-        { x: 100, y: 2300 },
-      ]),
-    ).toBe(false)
   })
 
   it('spreads flame emitters by x bucket while keeping bottom points', () => {
@@ -121,15 +105,10 @@ describe('logo particle emitters', () => {
     expect(attributes.seeds).toHaveLength(0)
   })
 
-  it('names asset-specific wordmark bounds instead of hiding magic numbers', () => {
-    expect(WORDMARK_SHAPE_BOUNDS).toEqual({
-      maxHeight: 310,
-      maxWidth: 340,
-      maxY: 1665,
-      minHeight: 36,
-      minWidth: 18,
-      minY: 1320,
-    })
+  it('maps wordmark shapes by explicit asset path indices', () => {
+    expect(LOGO_WORDMARK_SHAPE_INDICES).toEqual(
+      Array.from({ length: 24 }, (_, index) => index),
+    )
   })
 
   it('uses deterministic default particle randomness', () => {

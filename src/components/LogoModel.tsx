@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
-import { useLoader } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
-import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import { DoubleSide, Group, MeshPhysicalMaterial } from 'three'
+import logoMetadata from '../assets/logoMetadata.json'
 import { AttachedLogoEffects, DetachedLogoEffects } from './LogoEffects'
 import { prepareLogoScene } from './logoAsset'
-import { buildLogoLayout } from './logoGeometry'
+import type { LogoLayout } from './logoGeometry'
 import { LogoMesh } from './LogoMesh'
 import type { PointerTarget } from './logoPointer'
 import { LOGO_MODEL_SCALE } from './logoSparks'
@@ -16,18 +15,13 @@ type LogoModelProps = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
   modelSrc: string
-  svgSrc: string
 }
 
-export function LogoModel({ globalPointer, isTouch, modelSrc, svgSrc }: LogoModelProps) {
+const logoLayout: LogoLayout = logoMetadata
+
+export function LogoModel({ globalPointer, isTouch, modelSrc }: LogoModelProps) {
   const root = useRef<Group>(null)
-  const svg = useLoader(SVGLoader, svgSrc)
   const { scene: sourceScene } = useGLTF(modelSrc)
-  const shapes = useMemo(
-    () => svg.paths.flatMap((path) => SVGLoader.createShapes(path)),
-    [svg],
-  )
-  const logoLayout = useMemo(() => buildLogoLayout(shapes), [shapes])
   const texture = useMemo(() => createWornMetalTexture(), [])
   const material = useMemo(() => {
     const nextMaterial = new MeshPhysicalMaterial({

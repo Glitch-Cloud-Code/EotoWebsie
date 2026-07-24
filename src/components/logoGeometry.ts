@@ -1,6 +1,5 @@
-import { ExtrudeGeometry, type Shape } from 'three'
+import type { Shape } from 'three'
 import {
-  isWordmarkShape,
   sampleBottomEmittersFromTextShapes,
   spreadEmittersAcrossBand,
   type Point2D,
@@ -16,13 +15,21 @@ export type LogoLayout = {
   width: number
 }
 
-export type LogoGeometryEntry = {
-  geometry: ExtrudeGeometry
-  isWordmark: boolean
-}
-
 export const LOGO_HITBOX_DEPTH = 120
 export const LOGO_HITBOX_PADDING = 80
+export const LOGO_SURFACE_SAMPLE_LIMIT = 720
+
+function sampleSurfacePoints(points: Point2D[]) {
+  if (points.length <= LOGO_SURFACE_SAMPLE_LIMIT) {
+    return points
+  }
+
+  const step = points.length / LOGO_SURFACE_SAMPLE_LIMIT
+  return Array.from(
+    { length: LOGO_SURFACE_SAMPLE_LIMIT },
+    (_, index) => points[Math.floor(index * step)],
+  )
+}
 
 export function buildLogoLayout(shapes: Shape[]): LogoLayout {
   const sampledPoints = shapes.flatMap((shape) =>
@@ -66,28 +73,7 @@ export function buildLogoLayout(shapes: Shape[]): LogoLayout {
       smokeBandPoints.length > 0
         ? spreadEmittersAcrossBand(smokeBandPoints, 22, 'center')
         : spreadEmittersAcrossBand(centeredEmitters, 22, 'center'),
-    surfacePoints: centeredEmitters,
+    surfacePoints: sampleSurfacePoints(centeredEmitters),
     width: bounds.maxX - bounds.minX + LOGO_HITBOX_PADDING,
   }
-}
-
-export function createLogoGeometries(shapes: Shape[], logoLayout: LogoLayout): LogoGeometryEntry[] {
-  return shapes.map((shape) => {
-    const points = shape.getSpacedPoints(Math.max(28, Math.floor(shape.getLength() / 8)))
-    const geometry = new ExtrudeGeometry(shape, {
-      depth: 30,
-      bevelEnabled: true,
-      bevelSegments: 3,
-      bevelSize: 2.4,
-      bevelThickness: 2.4,
-      curveSegments: 24,
-      steps: 1,
-    })
-
-    geometry.translate(-logoLayout.centerX, -logoLayout.centerY, -15)
-    return {
-      geometry,
-      isWordmark: isWordmarkShape(points),
-    }
-  })
 }
