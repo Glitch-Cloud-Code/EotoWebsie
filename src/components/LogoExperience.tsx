@@ -4,7 +4,9 @@ import { ACESFilmicToneMapping } from 'three'
 import { installLogoSceneProbe } from './logoDiagnostics'
 import { LogoScene } from './LogoScene'
 import { normalizeViewportPointer, type PointerTarget } from './logoPointer'
+import { getLogoDpr, type LogoQuality } from './logoQuality'
 import { SceneErrorBoundary } from './SceneErrorBoundary'
+import { useElementVisibility } from './useElementVisibility'
 
 type LogoExperienceProps = {
   alt: string
@@ -20,46 +22,48 @@ function supportsWebGL() {
   return 'WebGLRenderingContext' in window && !!canvas.getContext('webgl')
 }
 
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    const update = () => setMatches(media.matches)
+    update()
+
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [query])
+
+  return matches
+}
+
 export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
   const globalPointer = useRef<PointerTarget>({ x: 0, y: 0 })
   const [hasError, setHasError] = useState(false)
-  const [isTouch, setIsTouch] = useState(false)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [spinRequest, setSpinRequest] = useState(0)
+  const isTouch = useMediaQuery('(pointer: coarse)')
+  const isNarrow = useMediaQuery('(max-width: 720px)')
+  const prefersReducedMotion = useMediaQuery(
+    '(prefers-reduced-motion: reduce)',
+  )
+  const { elementRef, isVisible } =
+    useElementVisibility<HTMLDivElement>('120px')
+  const quality: LogoQuality = isTouch || isNarrow ? 'low' : 'high'
+  const frameLoop = prefersReducedMotion
+    ? 'demand'
+    : isVisible
+      ? 'always'
+      : 'never'
   const canUseWebGL = useMemo(() => supportsWebGL(), [])
   const glOptions = useMemo(
     () => ({
       alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance' as const,
       preserveDrawingBuffer: !import.meta.env.PROD,
     }),
     [],
   )
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const media = window.matchMedia('(pointer: coarse)')
-    const update = () => setIsTouch(media.matches)
-    update()
-
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => setPrefersReducedMotion(media.matches)
-    update()
-
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -103,6 +107,8 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
             : 'Interactive Echoes Of The Orion logo. Press Enter or Space to rotate.'
         }
         className="logo-canvas-shell"
+        data-logo-quality={quality}
+        data-rendering={frameLoop === 'never' ? 'paused' : 'active'}
         onKeyDown={(event) => {
           if (
             !prefersReducedMotion &&
@@ -113,11 +119,13 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
           }
         }}
         role={prefersReducedMotion ? 'img' : 'button'}
+        ref={elementRef}
         tabIndex={prefersReducedMotion ? -1 : 0}
       >
         <Canvas
           camera={{ fov: 26, position: [0, 0, 170] }}
-          dpr={[1, 2]}
+          dpr={getLogoDpr(quality)}
+          frameloop={frameLoop}
           gl={glOptions}
           onCreated={({ camera, gl, scene }) => {
             gl.toneMapping = ACESFilmicToneMapping
@@ -129,6 +137,7 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
             globalPointer={globalPointer}
             isTouch={isTouch}
             modelSrc={`${import.meta.env.BASE_URL}assets/logo/logo.glb`}
+            quality={quality}
             reduceMotion={prefersReducedMotion}
             spinRequest={spinRequest}
           />

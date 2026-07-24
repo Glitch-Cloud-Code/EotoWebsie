@@ -14,6 +14,7 @@ import {
 } from './logoSceneConfig'
 import { LogoModel } from './LogoModel'
 import type { PointerTarget } from './logoPointer'
+import type { LogoQuality } from './logoQuality'
 
 function LogoSpotLight({ light }: { light: SpotLogoLight }) {
   const lightRef = useRef<ThreeSpotLight>(null)
@@ -55,6 +56,7 @@ type LogoSceneProps = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
   modelSrc: string
+  quality: LogoQuality
   reduceMotion: boolean
   spinRequest: number
 }
@@ -63,6 +65,7 @@ export function LogoScene({
   globalPointer,
   isTouch,
   modelSrc,
+  quality,
   reduceMotion,
   spinRequest,
 }: LogoSceneProps) {
@@ -100,6 +103,7 @@ export function LogoScene({
           globalPointer={globalPointer}
           isTouch={isTouch}
           modelSrc={modelSrc}
+          quality={quality}
           reduceMotion={reduceMotion}
           spinRequest={spinRequest}
         />

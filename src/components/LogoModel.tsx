@@ -7,6 +7,7 @@ import { prepareLogoScene } from './logoAsset'
 import type { LogoLayout } from './logoGeometry'
 import { LogoMesh } from './LogoMesh'
 import { createForgedMetalMaterial } from './logoMaterial'
+import type { LogoQuality } from './logoQuality'
 import type { PointerTarget } from './logoPointer'
 import {
   LOGO_EFFECTS_TRANSFORM_SCALE,
@@ -18,6 +19,7 @@ type LogoModelProps = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
   modelSrc: string
+  quality: LogoQuality
   reduceMotion: boolean
   spinRequest: number
 }
@@ -28,6 +30,7 @@ export function LogoModel({
   globalPointer,
   isTouch,
   modelSrc,
+  quality,
   reduceMotion,
   spinRequest,
 }: LogoModelProps) {
@@ -65,7 +68,7 @@ export function LogoModel({
         </group>
         {!reduceMotion ? (
           <group name="logo-svg-effects-transform" scale={LOGO_EFFECTS_TRANSFORM_SCALE}>
-            <AttachedLogoEffects logoLayout={logoLayout} />
+            <AttachedLogoEffects logoLayout={logoLayout} quality={quality} />
           </group>
         ) : null}
       </group>

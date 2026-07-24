@@ -16,17 +16,24 @@ import {
   type ParticleKind,
   type Point2D,
 } from './logoParticles'
+import { getParticleCount, type LogoQuality } from './logoQuality'
 
 type ParticleFieldProps = {
   emitters: Point2D[]
   kind: ParticleKind
+  quality: LogoQuality
 }
 
-export function ParticleField({ emitters, kind }: ParticleFieldProps) {
+export function ParticleField({ emitters, kind, quality }: ParticleFieldProps) {
   const pointsRef = useRef<Points>(null)
 
   const geometry = useMemo(() => {
-    const { drifts, positions, scales, seeds } = createParticleAttributes(emitters, kind)
+    const { drifts, positions, scales, seeds } = createParticleAttributes(
+      emitters,
+      kind,
+      undefined,
+      getParticleCount(kind, PARTICLE_KIND_SETTINGS[kind].count, quality),
+    )
 
     const nextGeometry = new BufferGeometry()
     nextGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
@@ -34,7 +41,7 @@ export function ParticleField({ emitters, kind }: ParticleFieldProps) {
     nextGeometry.setAttribute('aSeed', new Float32BufferAttribute(seeds, 1))
     nextGeometry.setAttribute('aDrift', new Float32BufferAttribute(drifts, 3))
     return nextGeometry
-  }, [emitters, kind])
+  }, [emitters, kind, quality])
 
   const material = useMemo(
     () =>

@@ -531,6 +531,11 @@ describe('logo flame visibility', () => {
   it('opens and closes the mobile navigation menu', async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
     await page.goto(url, { waitUntil: 'domcontentloaded' })
+    const logo = page.locator('.logo-canvas-shell')
+    await logo.waitFor({ state: 'visible', timeout: 10_000 })
+    expect(await logo.getAttribute('data-logo-quality')).toBe('low')
+    expect(await logo.getAttribute('data-rendering')).toBe('active')
+
     const toggle = page.locator('.menu-toggle')
     await toggle.waitFor({ state: 'visible', timeout: 10_000 })
     await toggle.click()
@@ -541,6 +546,16 @@ describe('logo flame visibility', () => {
 
     await toggle.click()
     expect(await page.locator('.site-navigation-open').count()).toBe(0)
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('.logo-canvas-shell')
+          ?.getAttribute('data-rendering') === 'paused',
+      undefined,
+      { timeout: 10_000 },
+    )
 
     await page.close()
   }, 45_000)

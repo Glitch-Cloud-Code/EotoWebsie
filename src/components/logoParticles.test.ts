@@ -110,6 +110,20 @@ describe('logo particle emitters', () => {
     expect(attributes.seeds).toHaveLength(0)
   })
 
+  it('supports a reduced particle budget', () => {
+    const attributes = createParticleAttributes(
+      [{ x: 0, y: 0 }],
+      'flame',
+      createSeededRandom(2),
+      24,
+    )
+
+    expect(attributes.positions).toHaveLength(24 * 3)
+    expect(attributes.drifts).toHaveLength(24 * 3)
+    expect(attributes.scales).toHaveLength(24)
+    expect(attributes.seeds).toHaveLength(24)
+  })
+
   it('maps wordmark shapes by explicit asset path indices', () => {
     expect(LOGO_WORDMARK_SHAPE_INDICES).toEqual(
       Array.from({ length: 24 }, (_, index) => index),

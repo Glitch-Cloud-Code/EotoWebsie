@@ -1,16 +1,36 @@
 import { GodRays } from './GodRays'
 import { LogoHalo } from './LogoHalo'
 import type { LogoLayout } from './logoGeometry'
+import {
+  shouldRenderSmoke,
+  type LogoQuality,
+} from './logoQuality'
 import { LOGO_MODEL_SCALE } from './logoSparks'
 import { ParticleField } from './ParticleField'
 import { SparkBurst } from './SparkBurst'
 import type { LogoSparkBurst } from './useLogoInteraction'
 
-export function AttachedLogoEffects({ logoLayout }: { logoLayout: LogoLayout }) {
+export function AttachedLogoEffects({
+  logoLayout,
+  quality,
+}: {
+  logoLayout: LogoLayout
+  quality: LogoQuality
+}) {
   return (
     <>
-      <ParticleField emitters={logoLayout.smokeEmitters} kind="smoke" />
-      <ParticleField emitters={logoLayout.flameEmitters} kind="flame" />
+      {shouldRenderSmoke(quality) ? (
+        <ParticleField
+          emitters={logoLayout.smokeEmitters}
+          kind="smoke"
+          quality={quality}
+        />
+      ) : null}
+      <ParticleField
+        emitters={logoLayout.flameEmitters}
+        kind="flame"
+        quality={quality}
+      />
     </>
   )
 }

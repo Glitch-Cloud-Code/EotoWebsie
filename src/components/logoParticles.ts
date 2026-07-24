@@ -122,6 +122,7 @@ export function createParticleAttributes(
   emitters: Point2D[],
   kind: ParticleKind,
   random: RandomFn = createSeededRandom(PARTICLE_RANDOM_SEED),
+  count: number = PARTICLE_KIND_SETTINGS[kind].count,
 ) {
   if (emitters.length === 0) {
     return {
@@ -133,12 +134,12 @@ export function createParticleAttributes(
   }
 
   const settings = PARTICLE_KIND_SETTINGS[kind]
-  const positions = new Float32Array(settings.count * 3)
-  const scales = new Float32Array(settings.count)
-  const seeds = new Float32Array(settings.count)
-  const drifts = new Float32Array(settings.count * 3)
+  const positions = new Float32Array(count * 3)
+  const scales = new Float32Array(count)
+  const seeds = new Float32Array(count)
+  const drifts = new Float32Array(count * 3)
 
-  for (let index = 0; index < settings.count; index += 1) {
+  for (let index = 0; index < count; index += 1) {
     const emitter = emitters[index % emitters.length]
     const baseIndex = index * 3
 
