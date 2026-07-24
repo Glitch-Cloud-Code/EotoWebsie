@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type RefObject } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 import { type ThreeEvent, useFrame } from '@react-three/fiber'
 import { Euler, Group, Quaternion, Vector3 } from 'three'
 import type { LogoLayout } from './logoGeometry'
@@ -78,54 +78,48 @@ export function useLogoInteraction({
     current.quaternion.slerp(targetTiltQuaternion.current, Math.min(delta * 3.8, 1))
   })
 
-  const removeSparkBurst = useCallback((id: number) => {
+  const removeSparkBurst = (id: number) => {
     setSparkBursts((currentBursts) => currentBursts.filter((burst) => burst.id !== id))
-  }, [])
+  }
 
-  const addSparkBurst = useCallback(
-    (eventPoint: Vector3) => {
-      if (!root.current) {
-        return
-      }
+  const addSparkBurst = (eventPoint: Vector3) => {
+    if (!root.current) {
+      return
+    }
 
-      const rootLocalClick = root.current.worldToLocal(scratchVector.current.copy(eventPoint))
-      const clickPoint = toLogoLocalClickPoint(rootLocalClick)
-      const nearestPoint = findNearestLogoSurfacePoint(logoLayout.surfacePoints, clickPoint)
-      const rootLocalOrigin = toLogoScenePoint(nearestPoint)
-      const worldOrigin = root.current.localToWorld(
-        scratchVector.current.set(rootLocalOrigin.x, rootLocalOrigin.y, rootLocalOrigin.z),
-      )
-      const nextBurst = {
-        id: sparkId.current,
-        origin: {
-          x: worldOrigin.x,
-          y: worldOrigin.y,
-          z: worldOrigin.z,
-        },
-      }
+    const rootLocalClick = root.current.worldToLocal(scratchVector.current.copy(eventPoint))
+    const clickPoint = toLogoLocalClickPoint(rootLocalClick)
+    const nearestPoint = findNearestLogoSurfacePoint(logoLayout.surfacePoints, clickPoint)
+    const rootLocalOrigin = toLogoScenePoint(nearestPoint)
+    const worldOrigin = root.current.localToWorld(
+      scratchVector.current.set(rootLocalOrigin.x, rootLocalOrigin.y, rootLocalOrigin.z),
+    )
+    const nextBurst = {
+      id: sparkId.current,
+      origin: {
+        x: worldOrigin.x,
+        y: worldOrigin.y,
+        z: worldOrigin.z,
+      },
+    }
 
-      sparkId.current += 1
-      setSparkBursts((currentBursts) => [...currentBursts.slice(-5), nextBurst])
-    },
-    [logoLayout.surfacePoints, root],
-  )
+    sparkId.current += 1
+    setSparkBursts((currentBursts) => [...currentBursts.slice(-5), nextBurst])
+  }
 
-  const startSpin = useCallback(
-    (event: ThreeEvent<PointerEvent>) => {
-      event.stopPropagation()
-      addSparkBurst(event.point)
+  const startSpin = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    addSparkBurst(event.point)
 
-      if (!spinState.current.active && root.current) {
-        const axis = getFlickSpinAxis({ x: event.point.x, y: event.point.y })
+    if (!spinState.current.active && root.current) {
+      const axis = getFlickSpinAxis({ x: event.point.x, y: event.point.y })
 
-        spinState.current.active = true
-        spinState.current.axis.set(axis.x, axis.y, axis.z)
-        spinState.current.elapsed = 0
-        spinState.current.startQuaternion.copy(root.current.quaternion)
-      }
-    },
-    [addSparkBurst, root],
-  )
+      spinState.current.active = true
+      spinState.current.axis.set(axis.x, axis.y, axis.z)
+      spinState.current.elapsed = 0
+      spinState.current.startQuaternion.copy(root.current.quaternion)
+    }
+  }
 
   return {
     removeSparkBurst,

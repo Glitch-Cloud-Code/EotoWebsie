@@ -25,7 +25,7 @@ export function GodRays({ height, width }: GodRaysProps) {
     return nextGeometry
   }, [height, width])
 
-  const material = useMemo(createGodRayMaterial, [])
+  const material = useMemo(() => createGodRayMaterial(), [])
 
   useEffect(() => {
     return () => {

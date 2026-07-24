@@ -11,15 +11,17 @@ type ShowDetails = {
   venue: string
 }
 
-export type Show =
-  | (ShowDetails & {
-      date: IsoDate
-      dateLabel?: never
-    })
-  | (ShowDetails & {
-      date?: never
-      dateLabel: string
-    })
+type ScheduledShow = ShowDetails & {
+  date: IsoDate
+  dateLabel?: never
+}
+
+type LabelledShow = ShowDetails & {
+  date?: never
+  dateLabel: string
+}
+
+export type Show = ScheduledShow | LabelledShow
 
 export type ShowDateParts = {
   day: string
@@ -106,8 +108,12 @@ export function createIsoDate(value: string): IsoDate {
   return value as IsoDate
 }
 
+function hasScheduledDate(show: Show): show is ScheduledShow {
+  return show.date !== undefined
+}
+
 export function formatShowDateParts(show: Show): ShowDateParts {
-  if (!show.date) {
+  if (!hasScheduledDate(show)) {
     return {
       day: show.dateLabel,
       label: '',
