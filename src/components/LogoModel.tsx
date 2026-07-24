@@ -80,7 +80,7 @@ export function LogoModel({ globalPointer, isTouch, modelSrc }: LogoModelProps) 
 
   return (
     <>
-      <group ref={root}>
+      <group name="logo-rotating-root" ref={root}>
         <group scale={[LOGO_MODEL_SCALE, -LOGO_MODEL_SCALE, LOGO_MODEL_SCALE]}>
           <LogoMesh
             glbScene={glbScene}

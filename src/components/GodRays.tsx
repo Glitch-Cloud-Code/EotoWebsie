@@ -47,6 +47,7 @@ export function GodRays({ height, width }: GodRaysProps) {
       frustumCulled={false}
       geometry={geometry}
       material={material}
+      name="logo-god-rays"
       ref={meshRef}
       renderOrder={LOGO_GOD_RAY_RENDER_ORDER}
     />

@@ -21,7 +21,7 @@ export function LogoMesh({
 }: LogoMeshProps) {
   return (
     <group onPointerDown={onPointerDown}>
-      <mesh>
+      <mesh name="logo-hitbox">
         <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
         <meshBasicMaterial depthWrite={false} opacity={0} transparent />
       </mesh>

@@ -115,4 +115,160 @@ describe('logo flame visibility', () => {
     expect(Math.min(...litSamples)).toBeGreaterThan(5_000)
     expect(Math.max(...litSamples)).toBeGreaterThan(8_000)
   }, 35_000)
+
+  it('uses the full logo hitbox when clicking outside visible geometry', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    const canvas = page.locator('canvas')
+    await canvas.waitFor({ state: 'visible', timeout: 10_000 })
+    const bounds = await canvas.boundingBox()
+    if (!bounds) {
+      throw new Error('Logo canvas bounds unavailable')
+    }
+
+    await page.mouse.click(
+      bounds.x + bounds.width * 0.15,
+      bounds.y + bounds.height * 0.5,
+    )
+    await page.waitForTimeout(180)
+
+    const state = await page.evaluate(() => {
+      const scene = window.__EOTO_LOGO_SCENE__
+      const root = scene?.getObjectByName('logo-rotating-root')
+      const hitbox = scene?.getObjectByName('logo-hitbox')
+
+      return {
+        hitboxExists: Boolean(hitbox),
+        rootRotation: root
+          ? Math.abs(root.quaternion.x) +
+            Math.abs(root.quaternion.y) +
+            Math.abs(root.quaternion.z)
+          : 0,
+        sparkCount: scene?.getObjectsByProperty('name', 'logo-spark-burst').length ?? 0,
+      }
+    })
+
+    await page.close()
+
+    expect(state.hitboxExists).toBe(true)
+    expect(state.rootRotation).toBeGreaterThan(0.05)
+    expect(state.sparkCount).toBeGreaterThan(0)
+  }, 30_000)
+
+  it('maps top and side clicks to perpendicular flick axes', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    const canvas = page.locator('canvas')
+    await canvas.waitFor({ state: 'visible', timeout: 10_000 })
+    const bounds = await canvas.boundingBox()
+    if (!bounds) {
+      throw new Error('Logo canvas bounds unavailable')
+    }
+
+    const center = {
+      x: bounds.x + bounds.width * 0.5,
+      y: bounds.y + bounds.height * 0.5,
+    }
+    await page.mouse.move(center.x, center.y)
+    await page.waitForTimeout(350)
+    await page.mouse.click(center.x, bounds.y + bounds.height * 0.2)
+    await page.waitForTimeout(180)
+    const topQuaternion = await page.evaluate(() => {
+      const root = window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
+      return root
+        ? { x: Math.abs(root.quaternion.x), y: Math.abs(root.quaternion.y) }
+        : { x: 0, y: 0 }
+    })
+
+    await page.waitForTimeout(1_150)
+    await page.mouse.move(center.x, center.y)
+    await page.waitForTimeout(350)
+    await page.mouse.click(bounds.x + bounds.width * 0.8, center.y)
+    await page.waitForTimeout(180)
+    const sideQuaternion = await page.evaluate(() => {
+      const root = window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
+      return root
+        ? { x: Math.abs(root.quaternion.x), y: Math.abs(root.quaternion.y) }
+        : { x: 0, y: 0 }
+    })
+
+    await page.close()
+
+    expect(topQuaternion.x).toBeGreaterThan(topQuaternion.y * 1.5)
+    expect(sideQuaternion.y).toBeGreaterThan(sideQuaternion.x * 1.5)
+  }, 35_000)
+
+  it('keeps click sparks detached from the rotating logo', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    const canvas = page.locator('canvas')
+    await canvas.waitFor({ state: 'visible', timeout: 10_000 })
+    await canvas.click()
+    await page.waitForTimeout(40)
+
+    const first = await page.evaluate(() => {
+      const scene = window.__EOTO_LOGO_SCENE__
+      const spark = scene?.getObjectByName('logo-spark-burst')
+      const root = scene?.getObjectByName('logo-rotating-root')
+      return spark
+        ? {
+            parentName: spark.parent?.name ?? '',
+            position: spark.position.toArray(),
+            rootRotation: root
+              ? Math.abs(root.quaternion.x) +
+                Math.abs(root.quaternion.y) +
+                Math.abs(root.quaternion.z)
+              : 0,
+          }
+        : null
+    })
+
+    await page.close()
+
+    expect(first).not.toBeNull()
+    expect(first?.parentName).not.toBe('logo-rotating-root')
+    expect(first?.position).toHaveLength(3)
+    expect(first?.rootRotation).toBeGreaterThan(0)
+  }, 30_000)
+
+  it('mounts visible god-rays behind the rotating logo', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    await page.waitForSelector('canvas', { timeout: 10_000 })
+    await page.waitForTimeout(500)
+
+    const rays = await page.evaluate(() => {
+      const object = window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-god-rays')
+      if (!object || !('material' in object) || !('geometry' in object)) {
+        return null
+      }
+
+      const material = object.material as {
+        depthTest: boolean
+        opacity: number
+        transparent: boolean
+        visible: boolean
+      }
+      const geometry = object.geometry as {
+        attributes: { position?: { count: number } }
+      }
+
+      return {
+        depthTest: material.depthTest,
+        parentName: object.parent?.name ?? '',
+        transparent: material.transparent,
+        vertexCount: geometry.attributes.position?.count ?? 0,
+        visible: object.visible && material.visible,
+      }
+    })
+
+    await page.close()
+
+    expect(rays).not.toBeNull()
+    expect(rays?.depthTest).toBe(false)
+    expect(rays?.parentName).not.toBe('logo-rotating-root')
+    expect(rays?.transparent).toBe(true)
+    expect(rays?.vertexCount).toBeGreaterThan(0)
+    expect(rays?.visible).toBe(true)
+  }, 30_000)
 })

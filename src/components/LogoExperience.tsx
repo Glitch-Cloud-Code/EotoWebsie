@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { installLogoSceneProbe } from './logoDiagnostics'
 import { LogoScene } from './LogoScene'
 import { normalizeViewportPointer, type PointerTarget } from './logoPointer'
 import { SceneErrorBoundary } from './SceneErrorBoundary'
@@ -75,7 +76,12 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
       onError={() => setHasError(true)}
     >
       <div className="logo-canvas-shell">
-        <Canvas camera={{ fov: 26, position: [0, 0, 170] }} dpr={[1, 2]} gl={glOptions}>
+        <Canvas
+          camera={{ fov: 26, position: [0, 0, 170] }}
+          dpr={[1, 2]}
+          gl={glOptions}
+          onCreated={({ scene }) => installLogoSceneProbe(scene)}
+        >
           <LogoScene
             globalPointer={globalPointer}
             isTouch={isTouch}

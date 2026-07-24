@@ -31,6 +31,7 @@ export function DetachedLogoEffects({
       {sparkBursts.map((burst) => (
         <group
           key={burst.id}
+          name="logo-spark-burst"
           position={[burst.origin.x, burst.origin.y, burst.origin.z]}
           scale={[LOGO_MODEL_SCALE, -LOGO_MODEL_SCALE, LOGO_MODEL_SCALE]}
         >
