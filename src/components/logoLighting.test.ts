@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
-  hasAxisCoverage,
   validateLogoLighting,
   type LogoLightingConfig,
 } from './logoLighting'
 import {
   LOGO_AMBIENT_LIGHT,
   LOGO_DIRECTIONAL_LIGHTS,
+  LOGO_ENVIRONMENT_LIGHTS,
   LOGO_HEMISPHERE_LIGHT,
   LOGO_LIGHTING_CONFIG,
   LOGO_POINT_LIGHTS,
@@ -14,30 +14,34 @@ import {
 } from './logoSceneConfig'
 
 describe('logo lighting', () => {
-  it('lights the logo from all major axes for full rotation readability', () => {
-    const positions = [
-      ...LOGO_DIRECTIONAL_LIGHTS.map((light) => light.position),
-      ...LOGO_POINT_LIGHTS.map((light) => light.position),
-      ...LOGO_SPOT_LIGHTS.map((light) => light.position),
-    ]
-
-    expect(hasAxisCoverage(positions)).toBe(true)
+  it('uses a restrained direct-light rig', () => {
+    expect(LOGO_AMBIENT_LIGHT.intensity).toBeLessThanOrEqual(0.2)
+    expect(LOGO_HEMISPHERE_LIGHT.intensity).toBeLessThanOrEqual(0.4)
+    expect(LOGO_DIRECTIONAL_LIGHTS).toHaveLength(3)
+    expect(LOGO_POINT_LIGHTS).toHaveLength(0)
+    expect(LOGO_SPOT_LIGHTS).toHaveLength(1)
   })
 
-  it('keeps enough global fill to avoid dark orientations', () => {
-    expect(LOGO_AMBIENT_LIGHT.intensity).toBeGreaterThanOrEqual(1.4)
-    expect(LOGO_HEMISPHERE_LIGHT.intensity).toBeGreaterThanOrEqual(1.5)
-    expect(LOGO_DIRECTIONAL_LIGHTS.length).toBeGreaterThanOrEqual(6)
-    expect(LOGO_POINT_LIGHTS.length).toBeGreaterThanOrEqual(4)
-    expect(LOGO_SPOT_LIGHTS.length).toBeGreaterThanOrEqual(3)
+  it('uses neutral reflection panels with one restrained red accent', () => {
+    expect(LOGO_ENVIRONMENT_LIGHTS).toHaveLength(3)
+    expect(LOGO_ENVIRONMENT_LIGHTS.map((light) => light.key)).toEqual([
+      'front-panel',
+      'white-edge-panel',
+      'red-edge-panel',
+    ])
+    expect(
+      LOGO_ENVIRONMENT_LIGHTS.every((light) => light.intensity <= 4),
+    ).toBe(true)
   })
 
-  it('uses broad cone lights for manual logo fill tuning', () => {
-    const wideCones = LOGO_SPOT_LIGHTS.filter((light) => light.angle >= 0.75 && !light.key.startsWith('direct-white'))
+  it('uses a broad, soft red rim cone behind the logo', () => {
+    const [rim] = LOGO_SPOT_LIGHTS
 
-    expect(wideCones.length).toBeGreaterThanOrEqual(2)
-    expect(wideCones.every((light) => light.penumbra >= 0.9)).toBe(true)
-    expect(LOGO_SPOT_LIGHTS.every((light) => light.position[2] > 0)).toBe(true)
+    expect(rim.key).toBe('red-rim')
+    expect(rim.color).toBe('#b91522')
+    expect(rim.angle).toBeGreaterThanOrEqual(0.7)
+    expect(rim.penumbra).toBeGreaterThanOrEqual(0.8)
+    expect(rim.position[2]).toBeLessThan(0)
   })
 
   it('aims cone lights at the centered logo pivot', () => {
@@ -46,14 +50,15 @@ describe('logo lighting', () => {
     expect(LOGO_SPOT_LIGHTS.every((light) => Math.abs(light.target[2]) < 1)).toBe(true)
   })
 
-  it('includes a strong direct white front light for the logo face', () => {
-    const frontLight = LOGO_SPOT_LIGHTS.find((light) => light.key === 'direct-white-front')
+  it('includes a stable white directional key for the logo face', () => {
+    const frontLight = LOGO_DIRECTIONAL_LIGHTS.find(
+      (light) => light.key === 'front-key',
+    )
 
     expect(frontLight).toBeDefined()
-    expect(frontLight?.color).toBe('#ffffff')
-    expect(frontLight?.intensity).toBeGreaterThanOrEqual(5_000)
-    expect(frontLight?.position).toEqual([0, 0, 150])
-    expect(frontLight?.target).toEqual([0, 0, 0])
+    expect(frontLight?.color).toBe('#fff7ec')
+    expect(frontLight?.intensity).toBeGreaterThanOrEqual(3)
+    expect(frontLight?.position[2]).toBeGreaterThan(0)
   })
 
   it('keeps light keys unique for stable React rendering', () => {

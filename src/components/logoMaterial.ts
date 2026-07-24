@@ -19,6 +19,7 @@ export function createForgedMetalMaterial() {
     color: '#ffffff',
     emissive: '#000000',
     emissiveIntensity: 0,
+    envMapIntensity: 1.15,
     metalness: LOGO_MATERIAL_PRESET.metalness,
     opacity: 1,
     roughness: LOGO_MATERIAL_PRESET.roughness,

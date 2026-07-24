@@ -37,28 +37,6 @@ function isFinitePosition(position: LightPosition) {
   return position.every(Number.isFinite)
 }
 
-export function hasAxisCoverage(positions: LightPosition[]) {
-  const axes = {
-    negativeX: false,
-    negativeY: false,
-    negativeZ: false,
-    positiveX: false,
-    positiveY: false,
-    positiveZ: false,
-  }
-
-  for (const [x, y, z] of positions) {
-    axes.positiveX ||= x > 0
-    axes.negativeX ||= x < 0
-    axes.positiveY ||= y > 0
-    axes.negativeY ||= y < 0
-    axes.positiveZ ||= z > 0
-    axes.negativeZ ||= z < 0
-  }
-
-  return Object.values(axes).every(Boolean)
-}
-
 export function validateLogoLighting(config: LogoLightingConfig) {
   const errors: string[] = []
   const lights = [

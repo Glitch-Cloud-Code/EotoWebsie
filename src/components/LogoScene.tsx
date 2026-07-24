@@ -4,6 +4,7 @@ import { Object3D, SpotLight as ThreeSpotLight } from 'three'
 import {
   type SpotLogoLight,
 } from './logoLighting'
+import { LogoEnvironment } from './LogoEnvironment'
 import {
   LOGO_AMBIENT_LIGHT,
   LOGO_DIRECTIONAL_LIGHTS,
@@ -74,6 +75,7 @@ export function LogoScene({
         groundColor={LOGO_HEMISPHERE_LIGHT.groundColor}
         intensity={LOGO_HEMISPHERE_LIGHT.intensity}
       />
+      <LogoEnvironment />
       {LOGO_DIRECTIONAL_LIGHTS.map((light) => (
         <directionalLight
           color={light.color}
@@ -102,7 +104,7 @@ export function LogoScene({
           spinRequest={spinRequest}
         />
       </Suspense>
-      <ContactShadows blur={2.8} color="#26090c" opacity={0.42} position={[0, -58, 0]} />
+      <ContactShadows blur={2.8} color="#26090c" opacity={0.28} position={[0, -58, 0]} />
     </>
   )
 }

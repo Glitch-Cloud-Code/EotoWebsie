@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { ACESFilmicToneMapping } from 'three'
 import { installLogoSceneProbe } from './logoDiagnostics'
 import { LogoScene } from './LogoScene'
 import { normalizeViewportPointer, type PointerTarget } from './logoPointer'
@@ -118,9 +119,11 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
           camera={{ fov: 26, position: [0, 0, 170] }}
           dpr={[1, 2]}
           gl={glOptions}
-          onCreated={({ camera, gl, scene }) =>
+          onCreated={({ camera, gl, scene }) => {
+            gl.toneMapping = ACESFilmicToneMapping
+            gl.toneMappingExposure = 1.05
             installLogoSceneProbe(scene, camera, gl)
-          }
+          }}
         >
           <LogoScene
             globalPointer={globalPointer}

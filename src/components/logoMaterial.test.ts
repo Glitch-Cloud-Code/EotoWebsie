@@ -13,6 +13,7 @@ describe('forged logo material', () => {
     expect(material.opacity).toBe(1)
     expect(material.map).toBeNull()
     expect(material.emissiveIntensity).toBe(0)
+    expect(material.envMapIntensity).toBe(1.15)
     expect(material.metalness).toBe(LOGO_MATERIAL_PRESET.metalness)
     expect(material.roughness).toBe(LOGO_MATERIAL_PRESET.roughness)
 
