@@ -51,10 +51,11 @@ function Loader() {
 type LogoSceneProps = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
+  modelSrc: string
   svgSrc: string
 }
 
-export function LogoScene({ globalPointer, isTouch, svgSrc }: LogoSceneProps) {
+export function LogoScene({ globalPointer, isTouch, modelSrc, svgSrc }: LogoSceneProps) {
   return (
     <>
       <fog args={['#0a0708', 95, 255]} attach="fog" />
@@ -84,7 +85,12 @@ export function LogoScene({ globalPointer, isTouch, svgSrc }: LogoSceneProps) {
         <LogoSpotLight key={light.key} light={light} />
       ))}
       <Suspense fallback={<Loader />}>
-        <LogoModel globalPointer={globalPointer} isTouch={isTouch} svgSrc={svgSrc} />
+        <LogoModel
+          globalPointer={globalPointer}
+          isTouch={isTouch}
+          modelSrc={modelSrc}
+          svgSrc={svgSrc}
+        />
       </Suspense>
       <ContactShadows blur={2.8} color="#26090c" opacity={0.42} position={[0, -58, 0]} />
     </>

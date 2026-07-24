@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useLoader } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import { DoubleSide, Group, MeshPhysicalMaterial } from 'three'
 import { AttachedLogoEffects, DetachedLogoEffects } from './LogoEffects'
-import { buildLogoLayout, createLogoGeometries } from './logoGeometry'
+import { prepareLogoScene } from './logoAsset'
+import { buildLogoLayout } from './logoGeometry'
 import { LogoMesh } from './LogoMesh'
 import type { PointerTarget } from './logoPointer'
 import { LOGO_MODEL_SCALE } from './logoSparks'
@@ -13,12 +15,14 @@ import { useLogoInteraction } from './useLogoInteraction'
 type LogoModelProps = {
   globalPointer: RefObject<PointerTarget>
   isTouch: boolean
+  modelSrc: string
   svgSrc: string
 }
 
-export function LogoModel({ globalPointer, isTouch, svgSrc }: LogoModelProps) {
+export function LogoModel({ globalPointer, isTouch, modelSrc, svgSrc }: LogoModelProps) {
   const root = useRef<Group>(null)
   const svg = useLoader(SVGLoader, svgSrc)
+  const { scene: sourceScene } = useGLTF(modelSrc)
   const shapes = useMemo(
     () => svg.paths.flatMap((path) => SVGLoader.createShapes(path)),
     [svg],
@@ -47,18 +51,23 @@ export function LogoModel({ globalPointer, isTouch, svgSrc }: LogoModelProps) {
 
     return nextMaterial
   }, [texture])
-  const textOverlayMaterial = useMemo(() => {
+  const glbScene = useMemo(
+    () => prepareLogoScene(sourceScene, material),
+    [material, sourceScene],
+  )
+  const highlightMaterial = useMemo(() => {
     const nextMaterial = material.clone()
     nextMaterial.depthTest = false
     nextMaterial.depthWrite = false
-    nextMaterial.emissiveIntensity = 0.38
-    nextMaterial.opacity = 1
+    nextMaterial.emissive.set('#6b2417')
+    nextMaterial.emissiveIntensity = 0.46
+    nextMaterial.opacity = 0.34
     nextMaterial.transparent = true
     return nextMaterial
   }, [material])
-  const geometries = useMemo(
-    () => createLogoGeometries(shapes, logoLayout),
-    [logoLayout, shapes],
+  const highlightScene = useMemo(
+    () => prepareLogoScene(sourceScene, highlightMaterial),
+    [highlightMaterial, sourceScene],
   )
   const { removeSparkBurst, sparkBursts, startSpin } = useLogoInteraction({
     globalPointer,
@@ -69,23 +78,21 @@ export function LogoModel({ globalPointer, isTouch, svgSrc }: LogoModelProps) {
 
   useEffect(() => {
     return () => {
-      geometries.forEach(({ geometry }) => geometry.dispose())
       material.dispose()
-      textOverlayMaterial.dispose()
+      highlightMaterial.dispose()
       texture?.dispose()
     }
-  }, [geometries, material, textOverlayMaterial, texture])
+  }, [highlightMaterial, material, texture])
 
   return (
     <>
       <group ref={root}>
         <group scale={[LOGO_MODEL_SCALE, -LOGO_MODEL_SCALE, LOGO_MODEL_SCALE]}>
           <LogoMesh
-            geometries={geometries}
+            glbScene={glbScene}
+            highlightScene={highlightScene}
             logoLayout={logoLayout}
-            material={material}
             onPointerDown={startSpin}
-            textOverlayMaterial={textOverlayMaterial}
           />
           <AttachedLogoEffects logoLayout={logoLayout} />
         </group>

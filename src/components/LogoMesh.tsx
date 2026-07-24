@@ -1,26 +1,23 @@
 import type { ThreeEvent } from '@react-three/fiber'
-import type { Material } from 'three'
+import type { Object3D } from 'three'
+import { LOGO_GLB_ROTATION, LOGO_GLB_SCALE } from './logoAsset'
 import {
   LOGO_HITBOX_DEPTH,
-  type LogoGeometryEntry,
   type LogoLayout,
 } from './logoGeometry'
-import { LOGO_RENDER_ORDER } from './logoParticles'
 
 type LogoMeshProps = {
-  geometries: LogoGeometryEntry[]
+  glbScene: Object3D
+  highlightScene: Object3D
   logoLayout: LogoLayout
-  material: Material
   onPointerDown: (event: ThreeEvent<PointerEvent>) => void
-  textOverlayMaterial: Material
 }
 
 export function LogoMesh({
-  geometries,
+  glbScene,
+  highlightScene,
   logoLayout,
-  material,
   onPointerDown,
-  textOverlayMaterial,
 }: LogoMeshProps) {
   return (
     <group onPointerDown={onPointerDown}>
@@ -28,25 +25,17 @@ export function LogoMesh({
         <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
         <meshBasicMaterial depthWrite={false} opacity={0} transparent />
       </mesh>
-      {geometries.map(({ geometry }, index) => (
-        <mesh
-          castShadow
-          geometry={geometry}
-          key={index}
-          material={material}
-          receiveShadow
-        />
-      ))}
-      {geometries
-        .filter(({ isWordmark }) => isWordmark)
-        .map(({ geometry }, index) => (
-          <mesh
-            geometry={geometry}
-            key={`wordmark-overlay-${index}`}
-            material={textOverlayMaterial}
-            renderOrder={LOGO_RENDER_ORDER.textOverlay}
-          />
-        ))}
+      <primitive
+        object={glbScene}
+        rotation={LOGO_GLB_ROTATION}
+        scale={LOGO_GLB_SCALE}
+      />
+      <primitive
+        object={highlightScene}
+        renderOrder={10}
+        rotation={LOGO_GLB_ROTATION}
+        scale={LOGO_GLB_SCALE}
+      />
     </group>
   )
 }

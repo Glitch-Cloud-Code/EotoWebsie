@@ -76,7 +76,12 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
     >
       <div className="logo-canvas-shell">
         <Canvas camera={{ fov: 26, position: [0, 0, 170] }} dpr={[1, 2]} gl={glOptions}>
-          <LogoScene globalPointer={globalPointer} isTouch={isTouch} svgSrc={fallbackSrc} />
+          <LogoScene
+            globalPointer={globalPointer}
+            isTouch={isTouch}
+            modelSrc={`${import.meta.env.BASE_URL}assets/logo/logo.glb`}
+            svgSrc={fallbackSrc}
+          />
         </Canvas>
       </div>
     </SceneErrorBoundary>
