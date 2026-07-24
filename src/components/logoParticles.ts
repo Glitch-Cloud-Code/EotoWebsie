@@ -28,9 +28,10 @@ export const LOGO_WORDMARK_SHAPE_INDICES = Array.from(
 
 export const PARTICLE_KIND_SETTINGS = {
   flame: {
-    alphaMultiplier: 0.78,
-    count: 320,
+    alphaMultiplier: 0.5,
+    count: 210,
     depthTest: true,
+    driftX: 18,
     driftY: [220, 400],
     driftZ: 70,
     fadeOutStart: 0.94,
@@ -38,9 +39,10 @@ export const PARTICLE_KIND_SETTINGS = {
     startZ: [-70, -24],
   },
   smoke: {
-    alphaMultiplier: 0.24,
-    count: 220,
+    alphaMultiplier: 0.12,
+    count: 120,
     depthTest: true,
+    driftX: 30,
     driftY: [176, 336],
     driftZ: 110,
     fadeOutStart: 0.94,
@@ -143,12 +145,13 @@ export function createParticleAttributes(
     positions[baseIndex] = emitter.x + (random() - 0.5) * (kind === 'flame' ? 10 : 18)
     positions[baseIndex + 1] = emitter.y + (random() - 0.5) * (kind === 'flame' ? 8 : 12)
     positions[baseIndex + 2] =
-      kind === 'flame' ? -24 - random() * 46 : -36 - random() * 74
+      settings.startZ[0] +
+      random() * (settings.startZ[1] - settings.startZ[0])
 
     scales[index] = settings.scale[0] + random() * (settings.scale[1] - settings.scale[0])
     seeds[index] = random()
 
-    drifts[baseIndex] = (random() - 0.5) * (kind === 'flame' ? 22 : 38)
+    drifts[baseIndex] = (random() - 0.5) * settings.driftX
     drifts[baseIndex + 1] = settings.driftY[0] + random() * (settings.driftY[1] - settings.driftY[0])
     drifts[baseIndex + 2] = (random() - 0.5) * settings.driftZ
   }

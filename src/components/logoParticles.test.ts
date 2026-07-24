@@ -74,24 +74,29 @@ describe('logo particle emitters', () => {
       const settings = PARTICLE_KIND_SETTINGS[kind]
       const { drifts, positions, scales } = createParticleAttributes(emitters, kind, createSeededRandom(7))
       const zValues = Array.from({ length: settings.count }, (_, index) => positions[index * 3 + 2])
+      const xDrifts = Array.from({ length: settings.count }, (_, index) => drifts[index * 3])
       const yDrifts = Array.from({ length: settings.count }, (_, index) => drifts[index * 3 + 1])
 
       expect(positions).toHaveLength(settings.count * 3)
       expect(Math.max(...zValues)).toBeLessThanOrEqual(PARTICLE_DEPTH_CLAMP_Z)
       expect(Math.min(...zValues)).toBeGreaterThanOrEqual(settings.startZ[0])
       expect(Math.max(...zValues)).toBeLessThanOrEqual(settings.startZ[1])
+      expect(Math.max(...xDrifts)).toBeLessThanOrEqual(settings.driftX / 2)
+      expect(Math.min(...xDrifts)).toBeGreaterThanOrEqual(-settings.driftX / 2)
       expect(new Set(zValues.map((value) => value.toFixed(1))).size).toBeGreaterThan(20)
       expect(Math.min(...Array.from(scales))).toBeGreaterThanOrEqual(settings.scale[0])
       expect(Math.max(...Array.from(scales))).toBeLessThanOrEqual(settings.scale[1])
       expect(Math.min(...yDrifts)).toBeGreaterThanOrEqual(settings.driftY[0])
       expect(Math.max(...yDrifts)).toBeLessThanOrEqual(settings.driftY[1])
       expect(settings.fadeOutStart).toBeGreaterThanOrEqual(0.9)
-      expect(settings.alphaMultiplier).toBeLessThanOrEqual(kind === 'flame' ? 1.1 : 0.25)
+      expect(settings.alphaMultiplier).toBeLessThanOrEqual(kind === 'flame' ? 0.55 : 0.15)
     }
   })
 
   it('keeps flames visible while preserving text readability', () => {
-    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.7)
+    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.45)
+    expect(PARTICLE_KIND_SETTINGS.flame.count).toBeLessThanOrEqual(220)
+    expect(PARTICLE_KIND_SETTINGS.smoke.count).toBeLessThanOrEqual(140)
     expect(PARTICLE_KIND_SETTINGS.flame.depthTest).toBe(true)
     expect(LOGO_RENDER_ORDER.textOverlay).toBeGreaterThan(LOGO_RENDER_ORDER.particles)
   })

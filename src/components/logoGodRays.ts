@@ -1,7 +1,7 @@
 import { createSeededRandom, type RandomFn } from '../utils/random'
 
-export const LOGO_GOD_RAY_COUNT = 18
-export const LOGO_GOD_RAY_ALPHA = 0.3
+export const LOGO_GOD_RAY_COUNT = 10
+export const LOGO_GOD_RAY_ALPHA = 0.1
 export const LOGO_GOD_RAY_RENDER_ORDER = 1
 export const LOGO_GOD_RAY_Z = -30
 export const LOGO_GOD_RAY_SCALE = 0.031

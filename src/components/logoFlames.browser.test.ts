@@ -302,15 +302,17 @@ describe('logo flame visibility', () => {
     expect(first?.rootRotation).toBeGreaterThan(0)
   }, 30_000)
 
-  it('mounts visible god-rays behind the rotating logo', async () => {
+  it('mounts visible halo and god-rays behind the rotating logo', async () => {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
     await page.goto(url, { waitUntil: 'networkidle' })
     await page.waitForSelector('canvas', { timeout: 10_000 })
     await page.mouse.move(640, 450)
     await page.waitForTimeout(500)
 
-    const rays = await page.evaluate(() => {
-      const object = window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-god-rays')
+    const atmosphere = await page.evaluate(() => {
+      const scene = window.__EOTO_LOGO_SCENE__
+      const object = scene?.getObjectByName('logo-god-rays')
+      const halo = scene?.getObjectByName('logo-halo')
       if (!object || !('material' in object) || !('geometry' in object)) {
         return null
       }
@@ -326,22 +328,33 @@ describe('logo flame visibility', () => {
       }
 
       return {
-        depthTest: material.depthTest,
-        parentName: object.parent?.name ?? '',
-        transparent: material.transparent,
-        vertexCount: geometry.attributes.position?.count ?? 0,
-        visible: object.visible && material.visible,
+        halo: {
+          parentName: halo?.parent?.name ?? '',
+          visible: Boolean(halo?.visible),
+          z: halo?.position.z ?? 0,
+        },
+        rays: {
+          depthTest: material.depthTest,
+          parentName: object.parent?.name ?? '',
+          transparent: material.transparent,
+          vertexCount: geometry.attributes.position?.count ?? 0,
+          visible: object.visible && material.visible,
+          z: object.position.z,
+        },
       }
     })
 
     await page.close()
 
-    expect(rays).not.toBeNull()
-    expect(rays?.depthTest).toBe(true)
-    expect(rays?.parentName).not.toBe('logo-rotating-root')
-    expect(rays?.transparent).toBe(true)
-    expect(rays?.vertexCount).toBeGreaterThan(0)
-    expect(rays?.visible).toBe(true)
+    expect(atmosphere).not.toBeNull()
+    expect(atmosphere?.halo.parentName).not.toBe('logo-rotating-root')
+    expect(atmosphere?.halo.visible).toBe(true)
+    expect(atmosphere?.halo.z).toBeLessThan(atmosphere?.rays.z ?? 0)
+    expect(atmosphere?.rays.depthTest).toBe(true)
+    expect(atmosphere?.rays.parentName).not.toBe('logo-rotating-root')
+    expect(atmosphere?.rays.transparent).toBe(true)
+    expect(atmosphere?.rays.vertexCount).toBeGreaterThan(0)
+    expect(atmosphere?.rays.visible).toBe(true)
   }, 30_000)
 
   it('renders an upright, opaque GLB model', async () => {

@@ -35,9 +35,9 @@ export function createGodRayMaterial() {
 
       void main() {
         float shimmer = 0.82 + sin(uTime * 0.7 + vSeed * 21.0) * 0.12;
-        vec3 warmCore = vec3(1.0, 0.72, 0.34);
-        vec3 bloodEdge = vec3(0.75, 0.06, 0.09);
-        vec3 color = mix(bloodEdge, warmCore, 0.72 + 0.18 * sin(vSeed * 12.0));
+        vec3 warmCore = vec3(0.88, 0.30, 0.20);
+        vec3 bloodEdge = vec3(0.62, 0.025, 0.055);
+        vec3 color = mix(bloodEdge, warmCore, 0.52 + 0.12 * sin(vSeed * 12.0));
         float alpha = vFade * ${LOGO_GOD_RAY_ALPHA.toFixed(2)} * shimmer;
 
         gl_FragColor = vec4(color, alpha);

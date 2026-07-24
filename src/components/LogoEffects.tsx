@@ -1,4 +1,5 @@
 import { GodRays } from './GodRays'
+import { LogoHalo } from './LogoHalo'
 import type { LogoLayout } from './logoGeometry'
 import { LOGO_MODEL_SCALE } from './logoSparks'
 import { ParticleField } from './ParticleField'
@@ -27,6 +28,7 @@ export function DetachedLogoEffects({
 }: DetachedLogoEffectsProps) {
   return (
     <>
+      <LogoHalo height={logoLayout.height} width={logoLayout.width} />
       <GodRays height={logoLayout.height} width={logoLayout.width} />
       {sparkBursts.map((burst) => (
         <group
