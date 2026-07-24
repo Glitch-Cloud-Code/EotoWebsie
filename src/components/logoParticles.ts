@@ -146,6 +146,15 @@ export function createParticleAttributes(
   kind: ParticleKind,
   random: RandomFn = createSeededRandom(PARTICLE_RANDOM_SEED),
 ) {
+  if (emitters.length === 0) {
+    return {
+      drifts: new Float32Array(),
+      positions: new Float32Array(),
+      scales: new Float32Array(),
+      seeds: new Float32Array(),
+    }
+  }
+
   const settings = PARTICLE_KIND_SETTINGS[kind]
   const positions = new Float32Array(settings.count * 3)
   const scales = new Float32Array(settings.count)

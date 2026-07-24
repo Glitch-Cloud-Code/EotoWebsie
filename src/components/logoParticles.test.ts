@@ -112,6 +112,15 @@ describe('logo particle emitters', () => {
     expect(LOGO_RENDER_ORDER.textOverlay).toBeGreaterThan(LOGO_RENDER_ORDER.particles)
   })
 
+  it('returns empty buffers when no emitters are available', () => {
+    const attributes = createParticleAttributes([], 'flame')
+
+    expect(attributes.positions).toHaveLength(0)
+    expect(attributes.drifts).toHaveLength(0)
+    expect(attributes.scales).toHaveLength(0)
+    expect(attributes.seeds).toHaveLength(0)
+  })
+
   it('names asset-specific wordmark bounds instead of hiding magic numbers', () => {
     expect(WORDMARK_SHAPE_BOUNDS).toEqual({
       maxHeight: 310,
