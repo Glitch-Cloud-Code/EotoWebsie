@@ -7,7 +7,10 @@ import { prepareLogoScene } from './logoAsset'
 import type { LogoLayout } from './logoGeometry'
 import { LogoMesh } from './LogoMesh'
 import type { PointerTarget } from './logoPointer'
-import { LOGO_MODEL_SCALE } from './logoSparks'
+import {
+  LOGO_EFFECTS_TRANSFORM_SCALE,
+  LOGO_MODEL_TRANSFORM_SCALE,
+} from './logoSparks'
 import { createWornMetalTexture } from './logoTexture'
 import { useLogoInteraction } from './useLogoInteraction'
 
@@ -49,20 +52,6 @@ export function LogoModel({ globalPointer, isTouch, modelSrc }: LogoModelProps) 
     () => prepareLogoScene(sourceScene, material),
     [material, sourceScene],
   )
-  const highlightMaterial = useMemo(() => {
-    const nextMaterial = material.clone()
-    nextMaterial.depthTest = false
-    nextMaterial.depthWrite = false
-    nextMaterial.emissive.set('#6b2417')
-    nextMaterial.emissiveIntensity = 0.46
-    nextMaterial.opacity = 0.34
-    nextMaterial.transparent = true
-    return nextMaterial
-  }, [material])
-  const highlightScene = useMemo(
-    () => prepareLogoScene(sourceScene, highlightMaterial),
-    [highlightMaterial, sourceScene],
-  )
   const { removeSparkBurst, sparkBursts, startSpin } = useLogoInteraction({
     globalPointer,
     isTouch,
@@ -73,21 +62,21 @@ export function LogoModel({ globalPointer, isTouch, modelSrc }: LogoModelProps) 
   useEffect(() => {
     return () => {
       material.dispose()
-      highlightMaterial.dispose()
       texture?.dispose()
     }
-  }, [highlightMaterial, material, texture])
+  }, [material, texture])
 
   return (
     <>
       <group name="logo-rotating-root" ref={root}>
-        <group scale={[LOGO_MODEL_SCALE, -LOGO_MODEL_SCALE, LOGO_MODEL_SCALE]}>
+        <group name="logo-glb-transform" scale={LOGO_MODEL_TRANSFORM_SCALE}>
           <LogoMesh
             glbScene={glbScene}
-            highlightScene={highlightScene}
             logoLayout={logoLayout}
             onPointerDown={startSpin}
           />
+        </group>
+        <group name="logo-svg-effects-transform" scale={LOGO_EFFECTS_TRANSFORM_SCALE}>
           <AttachedLogoEffects logoLayout={logoLayout} />
         </group>
       </group>

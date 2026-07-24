@@ -8,7 +8,7 @@ describe('GodRays material', () => {
     const material = createGodRayMaterial()
 
     expect(material.blending).toBe(AdditiveBlending)
-    expect(material.depthTest).toBe(false)
+    expect(material.depthTest).toBe(true)
     expect(material.depthWrite).toBe(false)
     expect(material.side).toBe(DoubleSide)
     expect(material.toneMapped).toBe(false)

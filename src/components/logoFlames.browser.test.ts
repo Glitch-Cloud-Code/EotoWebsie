@@ -235,6 +235,7 @@ describe('logo flame visibility', () => {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
     await page.goto(url, { waitUntil: 'networkidle' })
     await page.waitForSelector('canvas', { timeout: 10_000 })
+    await page.mouse.move(640, 450)
     await page.waitForTimeout(500)
 
     const rays = await page.evaluate(() => {
@@ -265,10 +266,118 @@ describe('logo flame visibility', () => {
     await page.close()
 
     expect(rays).not.toBeNull()
-    expect(rays?.depthTest).toBe(false)
+    expect(rays?.depthTest).toBe(true)
     expect(rays?.parentName).not.toBe('logo-rotating-root')
     expect(rays?.transparent).toBe(true)
     expect(rays?.vertexCount).toBeGreaterThan(0)
     expect(rays?.visible).toBe(true)
+  }, 30_000)
+
+  it('renders an upright, opaque GLB model', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    await page.waitForSelector('canvas', { timeout: 10_000 })
+    await page.waitForTimeout(500)
+
+    const modelState = await page.evaluate(() => {
+      const scene = window.__EOTO_LOGO_SCENE__
+      const model = scene?.getObjectByName('logo-glb-model')
+      const transform = scene?.getObjectByName('logo-glb-transform')
+      if (!model || !transform) {
+        return null
+      }
+
+      const materials: {
+        depthTest: boolean
+        opacity: number
+        transparent: boolean
+      }[] = []
+      const bounds = {
+        maxX: Number.NEGATIVE_INFINITY,
+        maxZ: Number.NEGATIVE_INFINITY,
+        minX: Number.POSITIVE_INFINITY,
+        minZ: Number.POSITIVE_INFINITY,
+      }
+
+      model.traverse((object) => {
+        if ('material' in object) {
+          const material = object.material as {
+            depthTest: boolean
+            opacity: number
+            transparent: boolean
+          }
+          materials.push({
+            depthTest: material.depthTest,
+            opacity: material.opacity,
+            transparent: material.transparent,
+          })
+        }
+
+        if ('geometry' in object) {
+          const position = (
+            object.geometry as {
+              attributes: {
+                position?: {
+                  count: number
+                  getX: (index: number) => number
+                  getY: (index: number) => number
+                  getZ: (index: number) => number
+                }
+              }
+            }
+          ).attributes.position
+          if (!position) {
+            return
+          }
+
+          object.updateWorldMatrix(true, false)
+          const elements = object.matrixWorld.elements
+          for (let index = 0; index < position.count; index += 1) {
+            const x = position.getX(index)
+            const y = position.getY(index)
+            const z = position.getZ(index)
+            const worldX =
+              elements[0] * x +
+              elements[4] * y +
+              elements[8] * z +
+              elements[12]
+            const worldZ =
+              elements[2] * x +
+              elements[6] * y +
+              elements[10] * z +
+              elements[14]
+
+            bounds.minX = Math.min(bounds.minX, worldX)
+            bounds.maxX = Math.max(bounds.maxX, worldX)
+            bounds.minZ = Math.min(bounds.minZ, worldZ)
+            bounds.maxZ = Math.max(bounds.maxZ, worldZ)
+          }
+        }
+      })
+
+      return {
+        frontAspect:
+          (bounds.maxX - bounds.minX) /
+          Math.max(bounds.maxZ - bounds.minZ, Number.EPSILON),
+        materialCount: materials.length,
+        materials,
+        transformScaleY: transform.scale.y,
+      }
+    })
+
+    await page.close()
+
+    expect(modelState).not.toBeNull()
+    expect(modelState?.frontAspect).toBeGreaterThan(20)
+    expect(modelState?.transformScaleY).toBeGreaterThan(0)
+    expect(modelState?.materialCount).toBeGreaterThan(0)
+    expect(
+      modelState?.materials.every(
+        (material) =>
+          material.depthTest &&
+          material.opacity === 1 &&
+          !material.transparent,
+      ),
+    ).toBe(true)
   }, 30_000)
 })

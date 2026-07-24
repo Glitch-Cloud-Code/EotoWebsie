@@ -8,14 +8,12 @@ import {
 
 type LogoMeshProps = {
   glbScene: Object3D
-  highlightScene: Object3D
   logoLayout: LogoLayout
   onPointerDown: (event: ThreeEvent<PointerEvent>) => void
 }
 
 export function LogoMesh({
   glbScene,
-  highlightScene,
   logoLayout,
   onPointerDown,
 }: LogoMeshProps) {
@@ -26,13 +24,8 @@ export function LogoMesh({
         <meshBasicMaterial depthWrite={false} opacity={0} transparent />
       </mesh>
       <primitive
+        name="logo-glb-model"
         object={glbScene}
-        rotation={LOGO_GLB_ROTATION}
-        scale={LOGO_GLB_SCALE}
-      />
-      <primitive
-        object={highlightScene}
-        renderOrder={10}
         rotation={LOGO_GLB_ROTATION}
         scale={LOGO_GLB_SCALE}
       />

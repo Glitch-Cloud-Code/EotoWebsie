@@ -8,6 +8,16 @@ export type Point3D = {
 }
 
 export const LOGO_MODEL_SCALE = 0.031
+export const LOGO_MODEL_TRANSFORM_SCALE: [number, number, number] = [
+  LOGO_MODEL_SCALE,
+  LOGO_MODEL_SCALE,
+  LOGO_MODEL_SCALE,
+]
+export const LOGO_EFFECTS_TRANSFORM_SCALE: [number, number, number] = [
+  LOGO_MODEL_SCALE,
+  -LOGO_MODEL_SCALE,
+  LOGO_MODEL_SCALE,
+]
 export const LOGO_SPARK_BURST_COUNT = 54
 export const LOGO_SPARK_LIFETIME_SECONDS = 0.72
 export const LOGO_SPARK_Z = 22

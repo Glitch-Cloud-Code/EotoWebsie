@@ -8,7 +8,7 @@ import { LOGO_GOD_RAY_ALPHA } from './logoGodRays'
 export function createGodRayMaterial() {
   return new ShaderMaterial({
     blending: AdditiveBlending,
-    depthTest: false,
+    depthTest: true,
     depthWrite: false,
     side: DoubleSide,
     toneMapped: false,

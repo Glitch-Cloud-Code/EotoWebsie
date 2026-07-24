@@ -9,9 +9,9 @@ describe('logo pointer tracking', () => {
   })
 
   it('maps viewport pointer to controlled logo tilt', () => {
-    expect(getLogoTiltFromPointer({ x: -1, y: 1 })).toEqual({ x: -0.15, y: 0.28 })
-    expect(getLogoTiltFromPointer({ x: 1, y: -1 })).toEqual({ x: 0.15, y: -0.28 })
-    expect(getLogoTiltFromPointer({ x: 8, y: -8 })).toEqual({ x: 0.15, y: -0.28 })
+    expect(getLogoTiltFromPointer({ x: -1, y: 1 })).toEqual({ x: -0.07, y: 0.11 })
+    expect(getLogoTiltFromPointer({ x: 1, y: -1 })).toEqual({ x: 0.07, y: -0.11 })
+    expect(getLogoTiltFromPointer({ x: 8, y: -8 })).toEqual({ x: 0.07, y: -0.11 })
   })
 
   it('maps click position to perpendicular flick spin axis', () => {

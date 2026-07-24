@@ -30,6 +30,7 @@ describe('logo god rays', () => {
 
   it('renders behind particles and text overlays', () => {
     expect(LOGO_GOD_RAY_ALPHA).toBeGreaterThanOrEqual(0.6)
+    expect(LOGO_GOD_RAY_Z).toBeLessThan(-20)
     expect(LOGO_GOD_RAY_RENDER_ORDER).toBeLessThan(5)
   })
 

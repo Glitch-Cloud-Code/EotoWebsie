@@ -22,8 +22,8 @@ export function normalizeViewportPointer(clientX: number, clientY: number, width
 
 export function getLogoTiltFromPointer(pointer: PointerTarget) {
   return {
-    x: Math.max(-0.15, Math.min(0.15, -pointer.y * 0.15)),
-    y: Math.max(-0.28, Math.min(0.28, -pointer.x * 0.28)),
+    x: Math.max(-0.07, Math.min(0.07, -pointer.y * 0.07)),
+    y: Math.max(-0.11, Math.min(0.11, -pointer.x * 0.11)),
   }
 }
 

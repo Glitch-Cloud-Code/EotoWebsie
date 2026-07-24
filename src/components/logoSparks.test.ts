@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   createSparkAttributes,
   findNearestLogoSurfacePoint,
+  LOGO_EFFECTS_TRANSFORM_SCALE,
   LOGO_MODEL_SCALE,
+  LOGO_MODEL_TRANSFORM_SCALE,
   LOGO_SPARK_BURST_COUNT,
   LOGO_SPARK_Z,
   toLogoLocalClickPoint,
@@ -11,6 +13,19 @@ import {
 import { createSeededRandom } from '../utils/random'
 
 describe('logo click sparks', () => {
+  it('keeps GLB upright while flipping SVG-derived effects', () => {
+    expect(LOGO_MODEL_TRANSFORM_SCALE).toEqual([
+      LOGO_MODEL_SCALE,
+      LOGO_MODEL_SCALE,
+      LOGO_MODEL_SCALE,
+    ])
+    expect(LOGO_EFFECTS_TRANSFORM_SCALE).toEqual([
+      LOGO_MODEL_SCALE,
+      -LOGO_MODEL_SCALE,
+      LOGO_MODEL_SCALE,
+    ])
+  })
+
   it('maps world click point into logo-local coordinates', () => {
     expect(toLogoLocalClickPoint({ x: LOGO_MODEL_SCALE * 12, y: -LOGO_MODEL_SCALE * 8, z: 0 })).toEqual({
       x: 12,

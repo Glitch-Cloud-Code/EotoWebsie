@@ -33,7 +33,7 @@ describe('logo GLB asset', () => {
   })
 
   it('faces the source X plane toward the camera at scene scale', () => {
-    expect(Math.abs(LOGO_GLB_ROTATION[1])).toBe(Math.PI / 2)
+    expect(LOGO_GLB_ROTATION[1]).toBe(-Math.PI / 4)
     expect(LOGO_GLB_SCALE).toBeGreaterThan(1)
   })
 })
