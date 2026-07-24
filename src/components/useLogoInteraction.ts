@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 import { type ThreeEvent, useFrame } from '@react-three/fiber'
 import { Euler, Group, Quaternion, Vector3 } from 'three'
 import type { LogoLayout } from './logoGeometry'
@@ -39,6 +39,7 @@ export function useLogoInteraction({
     startQuaternion: new Quaternion(),
   })
   const spinQuaternion = useRef(new Quaternion())
+  const processedSpinRequest = useRef(0)
   const sparkId = useRef(0)
   const [sparkBursts, setSparkBursts] = useState<LogoSparkBurst[]>([])
   const scratchVector = useRef(new Vector3())
@@ -46,26 +47,21 @@ export function useLogoInteraction({
   const targetTiltEuler = useRef(new Euler(0, 0, 0, 'XYZ'))
   const targetTiltQuaternion = useRef(new Quaternion())
 
-  useEffect(() => {
-    if (
-      reduceMotion ||
-      spinRequest === 0 ||
-      spinState.current.active ||
-      !root.current
-    ) {
-      return
-    }
-
-    spinState.current.active = true
-    spinState.current.axis.set(0, 1, 0)
-    spinState.current.elapsed = 0
-    spinState.current.startQuaternion.copy(root.current.quaternion)
-  }, [reduceMotion, root, spinRequest])
-
   useFrame((_, delta) => {
     const current = root.current
     if (!current) {
       return
+    }
+
+    if (spinRequest !== processedSpinRequest.current) {
+      processedSpinRequest.current = spinRequest
+
+      if (!reduceMotion && !spinState.current.active) {
+        spinState.current.active = true
+        spinState.current.axis.set(0, 1, 0)
+        spinState.current.elapsed = 0
+        spinState.current.startQuaternion.copy(current.quaternion)
+      }
     }
 
     if (reduceMotion) {

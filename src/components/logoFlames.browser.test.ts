@@ -457,17 +457,33 @@ describe('logo flame visibility', () => {
     await page.goto(url, { waitUntil: 'networkidle' })
     const logo = page.locator('.logo-canvas-shell')
     await logo.waitFor({ state: 'visible', timeout: 10_000 })
+    await page.waitForFunction(
+      () =>
+        Boolean(
+          window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root'),
+        ),
+      undefined,
+      { timeout: 10_000 },
+    )
     await logo.focus()
     await logo.press('Enter')
-    await page.waitForTimeout(180)
 
-    const rotation = await page.evaluate(() => {
-      const root = window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
-      return root
-        ? Math.abs(root.quaternion.x) +
+    const rotation = await page.evaluate(async () => {
+      let peakRotation = 0
+
+      for (let frame = 0; frame < 24; frame += 1) {
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+        const root =
+          window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
+        const currentRotation = root
+          ? Math.abs(root.quaternion.x) +
             Math.abs(root.quaternion.y) +
             Math.abs(root.quaternion.z)
-        : 0
+          : 0
+        peakRotation = Math.max(peakRotation, currentRotation)
+      }
+
+      return peakRotation
     })
 
     await page.close()
