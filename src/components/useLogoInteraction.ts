@@ -2,9 +2,20 @@ import { useRef, useState, type RefObject } from 'react'
 import { type ThreeEvent, useFrame } from '@react-three/fiber'
 import { Euler, Group, Quaternion, Vector3 } from 'three'
 import type { LogoLayout } from './logoGeometry'
-import { getFlickSpinAxis, getLogoTiltFromPointer, type PointerTarget } from './logoPointer'
+import {
+  easeOutCubic,
+  getDampingFactor,
+  LOGO_MOTION,
+} from './logoMotion'
+import {
+  getFlickSpinAxis,
+  getLogoTiltFromPointer,
+  normalizeLogoClickPoint,
+  type PointerTarget,
+} from './logoPointer'
 import {
   findNearestLogoSurfacePoint,
+  LOGO_MODEL_SCALE,
   toLogoLocalClickPoint,
   toLogoScenePoint,
   type Point3D,
@@ -82,8 +93,11 @@ export function useLogoInteraction({
 
     if (spinState.current.active) {
       spinState.current.elapsed += delta
-      const progress = Math.min(spinState.current.elapsed / 1.15, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
+      const progress = Math.min(
+        spinState.current.elapsed / LOGO_MOTION.spinDurationSeconds,
+        1,
+      )
+      const eased = easeOutCubic(progress)
 
       spinQuaternion.current.setFromAxisAngle(spinState.current.axis, eased * Math.PI * 2)
       current.quaternion.copy(spinState.current.startQuaternion).premultiply(spinQuaternion.current)
@@ -98,7 +112,10 @@ export function useLogoInteraction({
 
     targetTiltEuler.current.set(targetTilt.current.x, targetTilt.current.y, 0)
     targetTiltQuaternion.current.setFromEuler(targetTiltEuler.current)
-    current.quaternion.slerp(targetTiltQuaternion.current, Math.min(delta * 3.8, 1))
+    current.quaternion.slerp(
+      targetTiltQuaternion.current,
+      getDampingFactor(delta, LOGO_MOTION.tiltDamping),
+    )
   })
 
   const removeSparkBurst = (id: number) => {
@@ -139,7 +156,15 @@ export function useLogoInteraction({
     addSparkBurst(event.point)
 
     if (!spinState.current.active && root.current) {
-      const axis = getFlickSpinAxis({ x: event.point.x, y: event.point.y })
+      const rootLocalClick = root.current.worldToLocal(
+        scratchVector.current.copy(event.point),
+      )
+      const normalizedClick = normalizeLogoClickPoint(
+        { x: rootLocalClick.x, y: rootLocalClick.y },
+        logoLayout.width * LOGO_MODEL_SCALE,
+        logoLayout.height * LOGO_MODEL_SCALE,
+      )
+      const axis = getFlickSpinAxis(normalizedClick)
 
       spinState.current.active = true
       spinState.current.axis.set(axis.x, axis.y, axis.z)
