@@ -33,13 +33,14 @@ function App() {
               {hero.shows.length > 0 ? (
                 <ul className="shows-list">
                   {hero.shows.map((show) => {
-                    const showDate = formatShowDateParts(show.date)
+                    const showDate = formatShowDateParts(show)
+                    const rawDate = show.date ?? show.dateLabel
 
                     return (
-                      <li className="show-row" key={`${show.date}-${show.venue}-${show.city}`}>
+                      <li className="show-row" key={`${rawDate}-${show.venue}-${show.city}`}>
                         <div className="show-date">
                           <span className="show-day">{showDate.day}</span>
-                          <span className="show-date-label">{showDate.label || show.date}</span>
+                          <span className="show-date-label">{showDate.label || rawDate}</span>
                         </div>
 
                         <div className="show-meta">

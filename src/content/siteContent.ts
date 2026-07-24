@@ -1,10 +1,25 @@
-export type Show = {
+declare const isoDateBrand: unique symbol
+
+export type IsoDate = string & {
+  readonly [isoDateBrand]: true
+}
+
+type ShowDetails = {
   city: string
-  date: string
   status?: string
   ticketUrl?: string
   venue: string
 }
+
+export type Show =
+  | (ShowDetails & {
+      date: IsoDate
+      dateLabel?: never
+    })
+  | (ShowDetails & {
+      date?: never
+      dateLabel: string
+    })
 
 export type ShowDateParts = {
   day: string
@@ -58,18 +73,48 @@ export type SiteContent = {
 
 const base = import.meta.env.BASE_URL
 
-const showDayFormatter = new Intl.DateTimeFormat('en', { day: '2-digit' })
-const showLabelFormatter = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' })
+const showDayFormatter = new Intl.DateTimeFormat('en', {
+  day: '2-digit',
+  timeZone: 'UTC',
+})
+const showLabelFormatter = new Intl.DateTimeFormat('en', {
+  month: 'short',
+  timeZone: 'UTC',
+  year: 'numeric',
+})
 
-export function formatShowDateParts(date: string): ShowDateParts {
-  const parsed = new Date(`${date}T00:00:00`)
+export function createIsoDate(value: string): IsoDate {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) {
+    throw new Error(`Invalid ISO show date: ${value}`)
+  }
 
-  if (Number.isNaN(parsed.valueOf())) {
+  const [, yearText, monthText, dayText] = match
+  const year = Number(yearText)
+  const month = Number(monthText)
+  const day = Number(dayText)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    throw new Error(`Invalid ISO show date: ${value}`)
+  }
+
+  return value as IsoDate
+}
+
+export function formatShowDateParts(show: Show): ShowDateParts {
+  if (!show.date) {
     return {
-      day: date,
+      day: show.dateLabel,
       label: '',
     }
   }
+
+  const parsed = new Date(`${show.date}T00:00:00Z`)
 
   return {
     day: showDayFormatter.format(parsed),
