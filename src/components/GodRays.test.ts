@@ -5,14 +5,16 @@ import {
   LOGO_GOD_RAY_ALPHA,
   LOGO_GOD_RAY_BEND,
   LOGO_GOD_RAY_DEPTH_SWAY,
+  LOGO_GOD_RAY_EDGE_FADE_NDC,
   LOGO_GOD_RAY_HAZE_ALPHA,
   LOGO_GOD_RAY_LIFECYCLE_SECONDS,
+  LOGO_GOD_RAY_WORDMARK_MIN_ALPHA,
   LOGO_GOD_RAY_WIDTH_PULSE,
 } from './logoGodRays'
 
 describe('GodRays material', () => {
   it('uses additive depth-aware volumetric-style compositing', () => {
-    const material = createGodRayMaterial()
+    const material = createGodRayMaterial({ logoHeight: 200 })
 
     expect(material.blending).toBe(AdditiveBlending)
     expect(material.depthTest).toBe(true)
@@ -48,12 +50,20 @@ describe('GodRays material', () => {
       LOGO_GOD_RAY_LIFECYCLE_SECONDS.toFixed(1),
     )
     expect(material.fragmentShader).toContain('steelCore')
+    expect(material.fragmentShader).toContain('wordmarkReadability')
+    expect(material.fragmentShader).toContain('screenEdgeFade')
+    expect(material.fragmentShader).toContain(
+      LOGO_GOD_RAY_EDGE_FADE_NDC.toFixed(2),
+    )
+    expect(material.fragmentShader).toContain(
+      LOGO_GOD_RAY_WORDMARK_MIN_ALPHA.toFixed(2),
+    )
 
     material.dispose()
   })
 
   it('provides a broader low-alpha haze pass', () => {
-    const haze = createGodRayMaterial({ haze: true })
+    const haze = createGodRayMaterial({ haze: true, logoHeight: 200 })
 
     expect(haze.fragmentShader).toContain(LOGO_GOD_RAY_HAZE_ALPHA.toFixed(2))
     expect(haze.vertexShader).toContain('aAcross * 2.4')

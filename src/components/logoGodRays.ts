@@ -10,6 +10,7 @@ export const LOGO_GOD_RAY_SEGMENTS_LOW = 14
 export const LOGO_GOD_RAY_ALPHA = 0.3
 export const LOGO_GOD_RAY_BEND = 5.4
 export const LOGO_GOD_RAY_DEPTH_SWAY = 3.4
+export const LOGO_GOD_RAY_EDGE_FADE_NDC = 0.12
 export const LOGO_GOD_RAY_FIELD_DRIFT = 0.65
 export const LOGO_GOD_RAY_FIELD_ROTATION = 0.008
 export const LOGO_GOD_RAY_HAZE_ALPHA = 0.11
@@ -20,6 +21,8 @@ export const LOGO_GOD_RAY_SOURCE_Z_MIN = -54
 export const LOGO_GOD_RAY_SOURCE_Z_MAX = -46
 export const LOGO_GOD_RAY_TARGET_Z_MIN = -12
 export const LOGO_GOD_RAY_TARGET_Z_MAX = -3
+export const LOGO_GOD_RAY_WORDMARK_MIN_ALPHA = 0.34
+export const LOGO_GOD_RAY_WORDMARK_HEIGHT_RATIO = 0.13
 export const LOGO_GOD_RAY_WIDTH_PULSE = 1.5
 
 export type GodRayGeometryData = {
@@ -42,6 +45,23 @@ function smoothstep(edge0: number, edge1: number, value: number) {
   )
 
   return normalized * normalized * (3 - 2 * normalized)
+}
+
+export function getGodRayScreenEdgeFade(ndcX: number, ndcY: number) {
+  const edgeDistance = 1 - Math.max(Math.abs(ndcX), Math.abs(ndcY))
+
+  return smoothstep(0, LOGO_GOD_RAY_EDGE_FADE_NDC, edgeDistance)
+}
+
+export function getGodRayWordmarkMask(y: number, logoHeight: number) {
+  const halfHeight =
+    logoHeight * LOGO_GOD_RAY_SCALE * LOGO_GOD_RAY_WORDMARK_HEIGHT_RATIO
+  const outsideBand = smoothstep(halfHeight * 0.72, halfHeight, Math.abs(y))
+
+  return (
+    LOGO_GOD_RAY_WORDMARK_MIN_ALPHA +
+    outsideBand * (1 - LOGO_GOD_RAY_WORDMARK_MIN_ALPHA)
+  )
 }
 
 export function getGodRayLifecycle(timeSeconds: number, seed: number) {

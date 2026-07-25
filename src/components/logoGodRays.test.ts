@@ -5,6 +5,8 @@ import {
   getGodRayFieldTransform,
   getGodRayGeometryBudget,
   getGodRayLifecycle,
+  getGodRayScreenEdgeFade,
+  getGodRayWordmarkMask,
   LOGO_GOD_RAY_ALPHA,
   LOGO_GOD_RAY_COUNT,
   LOGO_GOD_RAY_FIELD_DRIFT,
@@ -19,6 +21,7 @@ import {
   LOGO_GOD_RAY_SOURCE_Z_MIN,
   LOGO_GOD_RAY_SUBRAY_COUNT,
   LOGO_GOD_RAY_TARGET_Z_MAX,
+  LOGO_GOD_RAY_WORDMARK_MIN_ALPHA,
 } from './logoGodRays'
 
 function readPosition(positions: Float32Array, vertexIndex: number) {
@@ -166,6 +169,17 @@ describe('logo god rays', () => {
         LOGO_GOD_RAY_FIELD_ROTATION,
       )
     }
+  })
+
+  it('softly protects the wordmark and feathers viewport edges', () => {
+    expect(getGodRayWordmarkMask(0, 200)).toBe(
+      LOGO_GOD_RAY_WORDMARK_MIN_ALPHA,
+    )
+    expect(getGodRayWordmarkMask(20, 200)).toBe(1)
+    expect(getGodRayScreenEdgeFade(0, 0)).toBe(1)
+    expect(getGodRayScreenEdgeFade(0.95, 0)).toBeGreaterThan(0)
+    expect(getGodRayScreenEdgeFade(0.95, 0)).toBeLessThan(1)
+    expect(getGodRayScreenEdgeFade(1, 0)).toBe(0)
   })
 
   it('keeps atmospheric output visible and behind the logo', () => {

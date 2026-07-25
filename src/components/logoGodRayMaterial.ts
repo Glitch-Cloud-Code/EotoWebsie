@@ -7,21 +7,29 @@ import {
   LOGO_GOD_RAY_ALPHA,
   LOGO_GOD_RAY_BEND,
   LOGO_GOD_RAY_DEPTH_SWAY,
+  LOGO_GOD_RAY_EDGE_FADE_NDC,
   LOGO_GOD_RAY_HAZE_ALPHA,
   LOGO_GOD_RAY_LIFECYCLE_SECONDS,
+  LOGO_GOD_RAY_SCALE,
+  LOGO_GOD_RAY_WORDMARK_HEIGHT_RATIO,
+  LOGO_GOD_RAY_WORDMARK_MIN_ALPHA,
   LOGO_GOD_RAY_WIDTH_PULSE,
 } from './logoGodRays'
 
 type GodRayMaterialOptions = {
   haze?: boolean
+  logoHeight: number
 }
 
 export function createGodRayMaterial({
   haze = false,
-}: GodRayMaterialOptions = {}) {
+  logoHeight,
+}: GodRayMaterialOptions) {
   const alpha = haze ? LOGO_GOD_RAY_HAZE_ALPHA : LOGO_GOD_RAY_ALPHA
   const hazeSpread = haze ? 2.4 : 0
   const edgeFalloff = haze ? 1.35 : 3.1
+  const wordmarkHalfHeight =
+    logoHeight * LOGO_GOD_RAY_SCALE * LOGO_GOD_RAY_WORDMARK_HEIGHT_RATIO
 
   return new ShaderMaterial({
     blending: AdditiveBlending,
@@ -43,6 +51,8 @@ export function createGodRayMaterial({
       varying float vAlong;
       varying float vLifecycleSeed;
       varying float vSeed;
+      varying vec3 vRayPosition;
+      varying vec2 vScreenPosition;
 
       void main() {
         float currentA =
@@ -87,14 +97,17 @@ export function createGodRayMaterial({
           ${LOGO_GOD_RAY_DEPTH_SWAY.toFixed(1)} *
           downstream;
 
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(
+        vec4 clipPosition = projectionMatrix * modelViewMatrix * vec4(
           animatedPosition,
           1.0
         );
+        gl_Position = clipPosition;
         vAcross = aAcross;
         vAlong = aAlong;
         vLifecycleSeed = aLifecycleSeed;
+        vRayPosition = animatedPosition;
         vSeed = aSeed;
+        vScreenPosition = clipPosition.xy / clipPosition.w;
       }
     `,
     fragmentShader: `
@@ -103,6 +116,8 @@ export function createGodRayMaterial({
       varying float vAlong;
       varying float vLifecycleSeed;
       varying float vSeed;
+      varying vec3 vRayPosition;
+      varying vec2 vScreenPosition;
 
       float hash21(vec2 point) {
         vec3 p3 = fract(vec3(point.xyx) * 0.1031);
@@ -180,6 +195,24 @@ export function createGodRayMaterial({
         float exitFade = 1.0 - smoothstep(0.8, 1.0, vAlong);
         float extinction = exp(-vAlong * 0.62);
         float density = 0.46 + breakup * 0.72 + caustic * 0.24;
+        float screenEdgeDistance =
+          1.0 - max(abs(vScreenPosition.x), abs(vScreenPosition.y));
+        float screenEdgeFade = smoothstep(
+          0.0,
+          ${LOGO_GOD_RAY_EDGE_FADE_NDC.toFixed(2)},
+          screenEdgeDistance
+        );
+        float wordmarkDistance = abs(vRayPosition.y);
+        float outsideWordmark = smoothstep(
+          ${(wordmarkHalfHeight * 0.72).toFixed(2)},
+          ${wordmarkHalfHeight.toFixed(2)},
+          wordmarkDistance
+        );
+        float wordmarkReadability = mix(
+          ${LOGO_GOD_RAY_WORDMARK_MIN_ALPHA.toFixed(2)},
+          1.0,
+          outsideWordmark
+        );
 
         vec3 bloodEdge = vec3(0.48, 0.012, 0.028);
         vec3 steelCore = vec3(0.86, 0.91, 0.98);
@@ -192,6 +225,8 @@ export function createGodRayMaterial({
           extinction *
           density *
           lifecycle *
+          screenEdgeFade *
+          wordmarkReadability *
           ${alpha.toFixed(2)};
 
         gl_FragColor = vec4(color, alpha);

@@ -43,10 +43,16 @@ export function GodRays({ height, quality, width }: GodRaysProps) {
     return nextGeometry
   }, [height, quality, width])
 
-  const material = useMemo(() => createGodRayMaterial(), [])
+  const material = useMemo(
+    () => createGodRayMaterial({ logoHeight: height }),
+    [height],
+  )
   const hazeMaterial = useMemo(
-    () => (quality === 'high' ? createGodRayMaterial({ haze: true }) : null),
-    [quality],
+    () =>
+      quality === 'high'
+        ? createGodRayMaterial({ haze: true, logoHeight: height })
+        : null,
+    [height, quality],
   )
 
   useEffect(() => {
