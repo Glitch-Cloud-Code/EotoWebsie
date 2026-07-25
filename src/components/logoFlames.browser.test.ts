@@ -330,7 +330,20 @@ describe('logo flame visibility', () => {
         : { x: 0, y: 0 }
     })
 
-    await page.waitForTimeout(1_150)
+    await page.waitForFunction(
+      () => {
+        const root =
+          window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
+        return root
+          ? Math.abs(root.quaternion.x) +
+              Math.abs(root.quaternion.y) +
+              Math.abs(root.quaternion.z) <
+              0.02
+          : false
+      },
+      undefined,
+      { timeout: 5_000 },
+    )
     await page.mouse.move(center.x, center.y)
     await page.waitForTimeout(350)
     await page.mouse.click(bounds.x + bounds.width * 0.8, center.y)
@@ -420,6 +433,15 @@ describe('logo flame visibility', () => {
       geometry.computeBoundingBox()
 
       return {
+        camera: window.__EOTO_LOGO_CAMERA__
+          ? {
+              fov:
+                'fov' in window.__EOTO_LOGO_CAMERA__
+                  ? window.__EOTO_LOGO_CAMERA__.fov
+                  : 0,
+              z: window.__EOTO_LOGO_CAMERA__.position.z,
+            }
+          : null,
         halo: {
           parentName: halo?.parent?.name ?? '',
           visible: Boolean(halo?.visible),
@@ -452,6 +474,9 @@ describe('logo flame visibility', () => {
     await page.close()
 
     expect(atmosphere).not.toBeNull()
+    expect(atmosphere?.camera?.fov).toBe(26)
+    expect(atmosphere?.camera?.z).toBeGreaterThan(170)
+    expect(atmosphere?.camera?.z).toBeLessThan(176)
     expect(atmosphere?.halo.parentName).not.toBe('logo-rotating-root')
     expect(atmosphere?.halo.visible).toBe(true)
     expect(atmosphere?.halo.z).toBeLessThan(atmosphere?.rays.zMin ?? 0)
@@ -603,6 +628,8 @@ describe('logo flame visibility', () => {
     await page.goto(url, { waitUntil: 'networkidle' })
     const logo = page.locator('.logo-canvas-shell')
     await logo.waitFor({ state: 'visible', timeout: 10_000 })
+    expect(await logo.getAttribute('data-rendering')).toBe('active')
+    expect(await logo.getAttribute('role')).toBe('button')
     await page.waitForFunction(
       () =>
         Boolean(
@@ -613,23 +640,36 @@ describe('logo flame visibility', () => {
     )
     await logo.focus()
     await logo.press('Enter')
-
-    const rotation = await page.evaluate(async () => {
-      let peakRotation = 0
-
-      for (let frame = 0; frame < 24; frame += 1) {
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('.logo-canvas-shell')
+          ?.getAttribute('data-spin-request') === '1',
+      undefined,
+      { timeout: 2_000 },
+    )
+    await page.waitForFunction(
+      () => {
         const root =
           window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
-        const currentRotation = root
+        return root
           ? Math.abs(root.quaternion.x) +
+              Math.abs(root.quaternion.y) +
+              Math.abs(root.quaternion.z) >
+              0.05
+          : false
+      },
+      undefined,
+      { timeout: 5_000 },
+    )
+    const rotation = await page.evaluate(() => {
+      const root =
+        window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
+      return root
+        ? Math.abs(root.quaternion.x) +
             Math.abs(root.quaternion.y) +
             Math.abs(root.quaternion.z)
-          : 0
-        peakRotation = Math.max(peakRotation, currentRotation)
-      }
-
-      return peakRotation
+        : 0
     })
 
     await page.close()
@@ -730,10 +770,13 @@ describe('logo flame visibility', () => {
           : 0
 
       return {
+        cameraZ: window.__EOTO_LOGO_CAMERA__?.position.z ?? 0,
         haze: Boolean(scene?.getObjectByName('logo-god-ray-haze')),
         vertexCount,
       }
     })
+    expect(rayBudget.cameraZ).toBeGreaterThan(160)
+    expect(rayBudget.cameraZ).toBeLessThan(170)
     expect(rayBudget.haze).toBe(false)
     expect(rayBudget.vertexCount).toBeLessThan(500)
 

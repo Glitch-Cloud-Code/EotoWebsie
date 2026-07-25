@@ -92,7 +92,10 @@ export function useLogoInteraction({
     }
 
     if (spinState.current.active) {
-      spinState.current.elapsed += delta
+      spinState.current.elapsed += Math.min(
+        delta,
+        LOGO_MOTION.maxAnimationDeltaSeconds,
+      )
       const progress = Math.min(
         spinState.current.elapsed / LOGO_MOTION.spinDurationSeconds,
         1,

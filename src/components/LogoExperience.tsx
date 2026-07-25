@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { ACESFilmicToneMapping } from 'three'
+import logoMetadata from '../assets/logoMetadata.json'
+import { LogoCamera } from './LogoCamera'
+import {
+  getLogoCameraDistance,
+  LOGO_CAMERA_FOV,
+} from './logoCameraLayout'
 import { installLogoSceneProbe } from './logoDiagnostics'
 import { LogoScene } from './LogoScene'
 import { normalizeViewportPointer, type PointerTarget } from './logoPointer'
@@ -64,6 +70,21 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
     }),
     [],
   )
+  const initialCamera = useMemo(
+    () => ({
+      fov: LOGO_CAMERA_FOV,
+      position: [
+        0,
+        0,
+        getLogoCameraDistance(
+          logoMetadata.width,
+          logoMetadata.height,
+          quality,
+        ),
+      ] as [number, number, number],
+    }),
+    [quality],
+  )
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -109,6 +130,7 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
         className="logo-canvas-shell"
         data-logo-quality={quality}
         data-rendering={frameLoop === 'never' ? 'paused' : 'active'}
+        data-spin-request={spinRequest}
         onKeyDown={(event) => {
           if (
             !prefersReducedMotion &&
@@ -123,7 +145,7 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
         tabIndex={prefersReducedMotion ? -1 : 0}
       >
         <Canvas
-          camera={{ fov: 26, position: [0, 0, 170] }}
+          camera={initialCamera}
           dpr={getLogoDpr(quality)}
           frameloop={frameLoop}
           gl={glOptions}
@@ -133,6 +155,11 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
             installLogoSceneProbe(scene, camera, gl)
           }}
         >
+          <LogoCamera
+            height={logoMetadata.height}
+            quality={quality}
+            width={logoMetadata.width}
+          />
           <LogoScene
             globalPointer={globalPointer}
             isTouch={isTouch}

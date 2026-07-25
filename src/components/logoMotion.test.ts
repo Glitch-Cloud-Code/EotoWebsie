@@ -7,6 +7,7 @@ import {
 
 describe('logo motion', () => {
   it('uses restrained heavy-object motion values', () => {
+    expect(LOGO_MOTION.maxAnimationDeltaSeconds).toBeCloseTo(1 / 20)
     expect(LOGO_MOTION.maxTiltX).toBeCloseTo((4 * Math.PI) / 180)
     expect(LOGO_MOTION.maxTiltY).toBeCloseTo((6 * Math.PI) / 180)
     expect(LOGO_MOTION.spinDurationSeconds).toBeGreaterThanOrEqual(1.25)

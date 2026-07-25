@@ -1,4 +1,5 @@
 export const LOGO_MOTION = {
+  maxAnimationDeltaSeconds: 1 / 20,
   maxTiltX: (4 * Math.PI) / 180,
   maxTiltY: (6 * Math.PI) / 180,
   spinDurationSeconds: 1.35,
