@@ -23,7 +23,10 @@ export function GodRays({ height, quality, width }: GodRaysProps) {
     const {
       across,
       alongs,
+      depthLayers,
+      lifecycleRates,
       lifecycleSeeds,
+      motionRates,
       positions,
       seeds,
     } = createGodRayGeometryData(width, height, { quality })
@@ -34,6 +37,18 @@ export function GodRays({ height, quality, width }: GodRaysProps) {
     nextGeometry.setAttribute(
       'aLifecycleSeed',
       new Float32BufferAttribute(lifecycleSeeds, 1),
+    )
+    nextGeometry.setAttribute(
+      'aLifecycleRate',
+      new Float32BufferAttribute(lifecycleRates, 1),
+    )
+    nextGeometry.setAttribute(
+      'aMotionRate',
+      new Float32BufferAttribute(motionRates, 1),
+    )
+    nextGeometry.setAttribute(
+      'aDepthLayer',
+      new Float32BufferAttribute(depthLayers, 1),
     )
     nextGeometry.setAttribute('aSeed', new Float32BufferAttribute(seeds, 1))
     nextGeometry.setAttribute(

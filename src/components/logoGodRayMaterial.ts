@@ -45,10 +45,15 @@ export function createGodRayMaterial({
       uniform float uTime;
       attribute float aAcross;
       attribute float aAlong;
+      attribute float aDepthLayer;
+      attribute float aLifecycleRate;
       attribute float aLifecycleSeed;
+      attribute float aMotionRate;
       attribute float aSeed;
       varying float vAcross;
       varying float vAlong;
+      varying float vDepthLayer;
+      varying float vLifecycleRate;
       varying float vLifecycleSeed;
       varying float vSeed;
       varying vec3 vRayPosition;
@@ -56,11 +61,11 @@ export function createGodRayMaterial({
 
       void main() {
         float currentA =
-          sin(uTime * 0.46 + aSeed * 19.7 + aAlong * 3.8);
+          sin(uTime * 0.46 * aMotionRate + aSeed * 19.7 + aAlong * 3.8);
         float currentB =
-          sin(uTime * 0.19 + aSeed * 41.3 - aAlong * 7.2);
+          sin(uTime * 0.19 * aMotionRate + aSeed * 41.3 - aAlong * 7.2);
         float currentC =
-          cos(uTime * 0.083 + aSeed * 67.1 + aAlong * 2.4);
+          cos(uTime * 0.083 * aMotionRate + aSeed * 67.1 + aAlong * 2.4);
         float downstream = smoothstep(0.0, 1.0, aAlong);
         float surfaceWeight = 1.0 - downstream;
         float surfaceCurrent =
@@ -104,6 +109,8 @@ export function createGodRayMaterial({
         gl_Position = clipPosition;
         vAcross = aAcross;
         vAlong = aAlong;
+        vDepthLayer = aDepthLayer;
+        vLifecycleRate = aLifecycleRate;
         vLifecycleSeed = aLifecycleSeed;
         vRayPosition = animatedPosition;
         vSeed = aSeed;
@@ -114,6 +121,8 @@ export function createGodRayMaterial({
       uniform float uTime;
       varying float vAcross;
       varying float vAlong;
+      varying float vDepthLayer;
+      varying float vLifecycleRate;
       varying float vLifecycleSeed;
       varying float vSeed;
       varying vec3 vRayPosition;
@@ -157,7 +166,8 @@ export function createGodRayMaterial({
 
       void main() {
         float lifecycleCycle = fract(
-          uTime / ${LOGO_GOD_RAY_LIFECYCLE_SECONDS.toFixed(1)} +
+          uTime * vLifecycleRate /
+            ${LOGO_GOD_RAY_LIFECYCLE_SECONDS.toFixed(1)} +
           vLifecycleSeed
         );
         float forming = smoothstep(0.0, 0.14, lifecycleCycle);
@@ -195,6 +205,17 @@ export function createGodRayMaterial({
         float exitFade = 1.0 - smoothstep(0.8, 1.0, vAlong);
         float extinction = exp(-vAlong * 0.62);
         float density = 0.46 + breakup * 0.72 + caustic * 0.24;
+        float surfaceRefraction = valueNoise(
+          vec2(
+            vSeed * 27.0 + uTime * 0.11,
+            vAcross * 2.4 - uTime * 0.07
+          )
+        );
+        density *= mix(
+          0.76,
+          1.2,
+          surfaceRefraction * (1.0 - smoothstep(0.0, 0.3, vAlong))
+        );
         float screenEdgeDistance =
           1.0 - max(abs(vScreenPosition.x), abs(vScreenPosition.y));
         float screenEdgeFade = smoothstep(
@@ -217,6 +238,7 @@ export function createGodRayMaterial({
         vec3 bloodEdge = vec3(0.48, 0.012, 0.028);
         vec3 steelCore = vec3(0.86, 0.91, 0.98);
         float coreMix = profile * (0.52 + caustic * 0.28);
+        coreMix *= 1.0 - abs(vDepthLayer) * 0.08;
         vec3 color = mix(bloodEdge, steelCore, coreMix);
         float alpha =
           profile *
@@ -227,6 +249,7 @@ export function createGodRayMaterial({
           lifecycle *
           screenEdgeFade *
           wordmarkReadability *
+          (1.0 - abs(vDepthLayer) * 0.12) *
           ${alpha.toFixed(2)};
 
         gl_FragColor = vec4(color, alpha);

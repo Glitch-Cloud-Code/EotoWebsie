@@ -451,7 +451,10 @@ describe('logo flame visibility', () => {
         attributes: {
           aAcross?: { count: number }
           aAlong?: { count: number }
+          aDepthLayer?: { count: number }
+          aLifecycleRate?: { count: number }
           aLifecycleSeed?: { count: number }
+          aMotionRate?: { count: number }
           position?: { count: number }
         }
         boundingBox?: {
@@ -480,10 +483,16 @@ describe('logo flame visibility', () => {
         hazeVisible: Boolean(haze?.visible),
         rays: {
           alongVertexCount: geometry.attributes.aAlong?.count ?? 0,
+          depthLayerVertexCount:
+            geometry.attributes.aDepthLayer?.count ?? 0,
           depthTest: material.depthTest,
           featherVertexCount: geometry.attributes.aAcross?.count ?? 0,
           lifecycleVertexCount:
             geometry.attributes.aLifecycleSeed?.count ?? 0,
+          lifecycleRateVertexCount:
+            geometry.attributes.aLifecycleRate?.count ?? 0,
+          motionRateVertexCount:
+            geometry.attributes.aMotionRate?.count ?? 0,
           fieldMotion:
             Math.abs(object.position.x) +
             Math.abs(object.position.y) +
@@ -515,10 +524,19 @@ describe('logo flame visibility', () => {
       atmosphere?.rays.vertexCount,
     )
     expect(atmosphere?.rays.depthTest).toBe(true)
+    expect(atmosphere?.rays.depthLayerVertexCount).toBe(
+      atmosphere?.rays.vertexCount,
+    )
     expect(atmosphere?.rays.featherVertexCount).toBe(
       atmosphere?.rays.vertexCount,
     )
     expect(atmosphere?.rays.lifecycleVertexCount).toBe(
+      atmosphere?.rays.vertexCount,
+    )
+    expect(atmosphere?.rays.lifecycleRateVertexCount).toBe(
+      atmosphere?.rays.vertexCount,
+    )
+    expect(atmosphere?.rays.motionRateVertexCount).toBe(
       atmosphere?.rays.vertexCount,
     )
     expect(atmosphere?.rays.fieldMotion).toBeGreaterThan(0.01)

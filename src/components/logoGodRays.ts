@@ -2,7 +2,7 @@ import type { LogoQuality } from './logoQuality'
 import { createSeededRandom, type RandomFn } from '../utils/random'
 
 export const LOGO_GOD_RAY_PRIMARY_COUNT = 7
-export const LOGO_GOD_RAY_SUBRAY_COUNT = 2
+export const LOGO_GOD_RAY_SUBRAY_COUNT = 3
 export const LOGO_GOD_RAY_COUNT =
   LOGO_GOD_RAY_PRIMARY_COUNT * LOGO_GOD_RAY_SUBRAY_COUNT
 export const LOGO_GOD_RAY_SEGMENTS_HIGH = 28
@@ -28,7 +28,10 @@ export const LOGO_GOD_RAY_WIDTH_PULSE = 1.5
 export type GodRayGeometryData = {
   across: Float32Array
   alongs: Float32Array
+  depthLayers: Float32Array
+  lifecycleRates: Float32Array
   lifecycleSeeds: Float32Array
+  motionRates: Float32Array
   positions: Float32Array
   seeds: Float32Array
 }
@@ -62,6 +65,42 @@ export function getGodRayWordmarkMask(y: number, logoHeight: number) {
     LOGO_GOD_RAY_WORDMARK_MIN_ALPHA +
     outsideBand * (1 - LOGO_GOD_RAY_WORDMARK_MIN_ALPHA)
   )
+}
+
+export function createGodRaySourceProgresses(
+  count: number,
+  random: RandomFn = createSeededRandom(7727),
+) {
+  if (count <= 0) {
+    return []
+  }
+
+  const clusterCount = Math.min(3, count)
+  const baseClusterSize = Math.floor(count / clusterCount)
+  const remainder = count % clusterCount
+  const progresses: number[] = []
+
+  for (let clusterIndex = 0; clusterIndex < clusterCount; clusterIndex += 1) {
+    const memberCount =
+      baseClusterSize + (clusterIndex < remainder ? 1 : 0)
+    const center =
+      clusterCount === 1 ? 0.5 : 0.08 + (clusterIndex / (clusterCount - 1)) * 0.84
+    const spread = memberCount === 1 ? 0 : 0.075
+
+    for (let memberIndex = 0; memberIndex < memberCount; memberIndex += 1) {
+      const memberProgress =
+        memberCount === 1 ? 0.5 : memberIndex / (memberCount - 1)
+      const jitter = (random() - 0.5) * 0.018
+      progresses.push(
+        Math.min(
+          0.98,
+          Math.max(0.02, center + (memberProgress - 0.5) * spread + jitter),
+        ),
+      )
+    }
+  }
+
+  return progresses.sort((left, right) => left - right)
 }
 
 export function getGodRayLifecycle(timeSeconds: number, seed: number) {
@@ -122,12 +161,16 @@ export function createGodRayGeometryData(
   const positions = new Float32Array(vertexCount * 3)
   const across = new Float32Array(vertexCount)
   const alongs = new Float32Array(vertexCount)
+  const depthLayers = new Float32Array(vertexCount)
+  const lifecycleRates = new Float32Array(vertexCount)
   const lifecycleSeeds = new Float32Array(vertexCount)
+  const motionRates = new Float32Array(vertexCount)
   const seeds = new Float32Array(vertexCount)
   const scaledWidth = width * LOGO_GOD_RAY_SCALE
   const scaledHeight = height * LOGO_GOD_RAY_SCALE
   const sourceBandWidth = scaledWidth * 0.92
   const targetBandWidth = scaledWidth * 1.72
+  const sourceProgresses = createGodRaySourceProgresses(primaryCount, random)
   let targetVertex = 0
 
   const writeVertex = (
@@ -136,8 +179,11 @@ export function createGodRayGeometryData(
     z: number,
     along: number,
     acrossValue: number,
+    depthLayer: number,
     seed: number,
     lifecycleSeed: number,
+    lifecycleRate: number,
+    motionRate: number,
   ) => {
     const positionIndex = targetVertex * 3
     positions[positionIndex] = x
@@ -145,14 +191,16 @@ export function createGodRayGeometryData(
     positions[positionIndex + 2] = z
     across[targetVertex] = acrossValue
     alongs[targetVertex] = along
+    depthLayers[targetVertex] = depthLayer
+    lifecycleRates[targetVertex] = lifecycleRate
     seeds[targetVertex] = seed
     lifecycleSeeds[targetVertex] = lifecycleSeed
+    motionRates[targetVertex] = motionRate
     targetVertex += 1
   }
 
   for (let primaryIndex = 0; primaryIndex < primaryCount; primaryIndex += 1) {
-    const sourceProgress =
-      primaryCount === 1 ? 0.5 : primaryIndex / (primaryCount - 1)
+    const sourceProgress = sourceProgresses[primaryIndex]
     const horizontalProgress = sourceProgress - 0.5
     const primarySourceX =
       horizontalProgress * sourceBandWidth +
@@ -172,13 +220,16 @@ export function createGodRayGeometryData(
         (LOGO_GOD_RAY_TARGET_Z_MAX - LOGO_GOD_RAY_TARGET_Z_MIN)
     const primarySeed = random()
     const lifecycleSeed =
-      (primaryIndex / primaryCount + random() * 0.035) % 1
+      ((primaryIndex + random() * 0.78) / primaryCount + random() * 0.025) % 1
+    const lifecycleRate = 0.82 + random() * 0.36
+    const motionRate = 0.84 + random() * 0.32
 
     for (let subrayIndex = 0; subrayIndex < subrayCount; subrayIndex += 1) {
       const pairedOffset =
         subrayCount === 1
           ? 0
           : subrayIndex / (subrayCount - 1) - 0.5
+      const depthLayer = pairedOffset * 2
       const sourceX =
         primarySourceX + pairedOffset * scaledWidth * 0.018
       const targetX =
@@ -225,8 +276,11 @@ export function createGodRayGeometryData(
           nearLeft.z,
           nearAlong,
           -1,
+          depthLayer,
           seed,
           lifecycleSeed,
+          lifecycleRate,
+          motionRate,
         )
         writeVertex(
           nearRight.x,
@@ -234,8 +288,11 @@ export function createGodRayGeometryData(
           nearRight.z,
           nearAlong,
           1,
+          depthLayer,
           seed,
           lifecycleSeed,
+          lifecycleRate,
+          motionRate,
         )
         writeVertex(
           farLeft.x,
@@ -243,8 +300,11 @@ export function createGodRayGeometryData(
           farLeft.z,
           farAlong,
           -1,
+          depthLayer,
           seed,
           lifecycleSeed,
+          lifecycleRate,
+          motionRate,
         )
         writeVertex(
           nearRight.x,
@@ -252,8 +312,11 @@ export function createGodRayGeometryData(
           nearRight.z,
           nearAlong,
           1,
+          depthLayer,
           seed,
           lifecycleSeed,
+          lifecycleRate,
+          motionRate,
         )
         writeVertex(
           farRight.x,
@@ -261,8 +324,11 @@ export function createGodRayGeometryData(
           farRight.z,
           farAlong,
           1,
+          depthLayer,
           seed,
           lifecycleSeed,
+          lifecycleRate,
+          motionRate,
         )
         writeVertex(
           farLeft.x,
@@ -270,8 +336,11 @@ export function createGodRayGeometryData(
           farLeft.z,
           farAlong,
           -1,
+          depthLayer,
           seed,
           lifecycleSeed,
+          lifecycleRate,
+          motionRate,
         )
       }
     }
@@ -280,7 +349,10 @@ export function createGodRayGeometryData(
   return {
     across,
     alongs,
+    depthLayers,
+    lifecycleRates,
     lifecycleSeeds,
+    motionRates,
     positions,
     seeds,
   }

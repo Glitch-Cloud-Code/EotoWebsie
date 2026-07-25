@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createSeededRandom } from '../utils/random'
 import {
   createGodRayGeometryData,
+  createGodRaySourceProgresses,
   getGodRayFieldTransform,
   getGodRayGeometryBudget,
   getGodRayLifecycle,
@@ -50,12 +51,22 @@ describe('logo god rays', () => {
     expect(first.positions).toHaveLength(expectedVertices * 3)
     expect(first.across).toHaveLength(expectedVertices)
     expect(first.alongs).toHaveLength(expectedVertices)
+    expect(first.depthLayers).toHaveLength(expectedVertices)
+    expect(first.lifecycleRates).toHaveLength(expectedVertices)
     expect(first.lifecycleSeeds).toHaveLength(expectedVertices)
+    expect(first.motionRates).toHaveLength(expectedVertices)
     expect(first.seeds).toHaveLength(expectedVertices)
     expect(new Set(first.seeds).size).toBe(LOGO_GOD_RAY_COUNT)
     expect(new Set(first.lifecycleSeeds).size).toBe(
       LOGO_GOD_RAY_PRIMARY_COUNT,
     )
+    expect(new Set(first.lifecycleRates).size).toBe(
+      LOGO_GOD_RAY_PRIMARY_COUNT,
+    )
+    expect(new Set(first.motionRates).size).toBe(
+      LOGO_GOD_RAY_PRIMARY_COUNT,
+    )
+    expect(new Set(first.depthLayers)).toEqual(new Set([-1, 0, 1]))
     expect(Array.from(first.positions)).toEqual(Array.from(second.positions))
     expect(Array.from(first.across.slice(0, 6))).toEqual([
       -1, 1, -1, 1, 1, -1,
@@ -67,6 +78,22 @@ describe('logo god rays', () => {
         Array.from(first.positions).filter((_, index) => index % 3 === 2),
       ).size,
     ).toBeGreaterThan(LOGO_GOD_RAY_SEGMENTS_HIGH)
+  })
+
+  it('clusters surface openings across three separated regions', () => {
+    const progresses = createGodRaySourceProgresses(
+      LOGO_GOD_RAY_PRIMARY_COUNT,
+      createSeededRandom(9),
+    )
+    const gaps = progresses
+      .slice(1)
+      .map((progress, index) => progress - progresses[index])
+
+    expect(progresses).toHaveLength(LOGO_GOD_RAY_PRIMARY_COUNT)
+    expect(progresses[0]).toBeLessThan(0.08)
+    expect(progresses.at(-1)).toBeGreaterThan(0.92)
+    expect(gaps.filter((gap) => gap < 0.1).length).toBeGreaterThanOrEqual(3)
+    expect(gaps.filter((gap) => gap > 0.25).length).toBe(2)
   })
 
   it('forms and collapses each primary ray on a smooth cycle', () => {
