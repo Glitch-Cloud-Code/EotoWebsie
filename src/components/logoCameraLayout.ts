@@ -1,3 +1,4 @@
+import type { PerspectiveCamera } from 'three'
 import type { LogoQuality } from './logoQuality'
 import { LOGO_MODEL_SCALE } from './logoSparks'
 
@@ -24,4 +25,13 @@ export function getLogoCameraDistance(
   const verticalDistance = sceneHeight / (2 * tangent * fill)
 
   return Math.max(horizontalDistance, verticalDistance)
+}
+
+export function applyLogoCameraLayout(
+  camera: PerspectiveCamera,
+  distance: number,
+) {
+  camera.fov = LOGO_CAMERA_FOV
+  camera.position.set(0, 0, distance)
+  camera.updateProjectionMatrix()
 }

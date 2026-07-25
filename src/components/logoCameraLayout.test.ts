@@ -1,6 +1,8 @@
+import { PerspectiveCamera } from 'three'
 import { describe, expect, it } from 'vitest'
 import logoMetadata from '../assets/logoMetadata.json'
 import {
+  applyLogoCameraLayout,
   getLogoCameraDistance,
   LOGO_CAMERA_FILL,
   LOGO_CAMERA_FOV,
@@ -41,5 +43,16 @@ describe('logo camera layout', () => {
 
     expect(low).toBeLessThan(high)
     expect(portrait).toBeGreaterThan(low)
+  })
+
+  it('applies the computed layout through one camera adapter', () => {
+    const camera = new PerspectiveCamera(50, 1, 0.1, 1_000)
+    const previousProjection = camera.projectionMatrix.clone()
+
+    applyLogoCameraLayout(camera, 172)
+
+    expect(camera.fov).toBe(LOGO_CAMERA_FOV)
+    expect(camera.position.toArray()).toEqual([0, 0, 172])
+    expect(camera.projectionMatrix.equals(previousProjection)).toBe(false)
   })
 })

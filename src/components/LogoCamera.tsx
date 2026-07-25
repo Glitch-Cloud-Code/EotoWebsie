@@ -2,8 +2,8 @@ import { useLayoutEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import { PerspectiveCamera } from 'three'
 import {
+  applyLogoCameraLayout,
   getLogoCameraDistance,
-  LOGO_CAMERA_FOV,
 } from './logoCameraLayout'
 import type { LogoQuality } from './logoQuality'
 
@@ -23,13 +23,10 @@ export function LogoCamera({ height, quality, width }: LogoCameraProps) {
     }
 
     const aspect = size.height > 0 ? size.width / size.height : 1
-    camera.fov = LOGO_CAMERA_FOV
-    camera.position.set(
-      0,
-      0,
+    applyLogoCameraLayout(
+      camera,
       getLogoCameraDistance(width, height, quality, aspect),
     )
-    camera.updateProjectionMatrix()
   }, [camera, height, quality, size.height, size.width, width])
 
   return null
