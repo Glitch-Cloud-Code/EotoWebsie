@@ -898,6 +898,10 @@ describe('logo flame visibility', () => {
         },
         scrollWidth: document.documentElement.scrollWidth,
         statement: {
+          fontSize: Number.parseFloat(
+            window.getComputedStyle(statement).fontSize,
+          ),
+          height: statementBounds.height,
           left: statementBounds.left,
           right: statementBounds.right,
         },
@@ -918,6 +922,8 @@ describe('logo flame visibility', () => {
     expect(mobileBounds.statement.right).toBeLessThanOrEqual(
       mobileBounds.hero.right + 1,
     )
+    expect(mobileBounds.statement.fontSize).toBeLessThanOrEqual(44)
+    expect(mobileBounds.statement.height).toBeLessThanOrEqual(145)
     const rayBudget = await page.evaluate(() => {
       const scene = window.__EOTO_LOGO_SCENE__
       const rays = scene?.getObjectByName('logo-god-rays')

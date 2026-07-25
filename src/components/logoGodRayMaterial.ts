@@ -31,7 +31,7 @@ export function createGodRayMaterial({
     profile === 'haze'
       ? LOGO_GOD_RAY_HAZE_ALPHA
       : profile === 'soft'
-        ? 0.24
+        ? 0.22
         : LOGO_GOD_RAY_ALPHA
   const hazeSpread = profile === 'haze' ? 2.4 : profile === 'soft' ? 0.9 : 0
   const edgeFalloff =
@@ -243,9 +243,9 @@ export function createGodRayMaterial({
           outsideWordmark
         );
 
-        vec3 bloodEdge = vec3(0.48, 0.012, 0.028);
-        vec3 steelCore = vec3(0.86, 0.91, 0.98);
-        float coreMix = profile * (0.52 + caustic * 0.28);
+        vec3 bloodEdge = vec3(0.25, 0.018, 0.035);
+        vec3 steelCore = vec3(0.9, 0.94, 1.0);
+        float coreMix = profile * (0.62 + caustic * 0.26);
         coreMix *= 1.0 - abs(vDepthLayer) * 0.08;
         vec3 color = mix(bloodEdge, steelCore, coreMix);
         float alpha =

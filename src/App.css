@@ -143,21 +143,21 @@ footer {
 }
 
 .hero-statement {
-  max-width: 12ch;
+  max-width: 14ch;
   margin: 0;
   color: var(--color-text);
   font-family: 'Thunderbolt', 'Inter', sans-serif;
-  font-size: clamp(3rem, 5.2vw, 5.25rem);
-  line-height: 0.92;
+  font-size: clamp(2.5rem, 4.15vw, 4.1rem);
+  line-height: 0.94;
   text-transform: uppercase;
 }
 
 .hero-intro {
   max-width: 34rem;
-  margin: 1.5rem 0 2.7rem;
+  margin: 1.3rem 0 2.25rem;
   color: var(--color-muted);
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 0.96rem;
+  line-height: 1.65;
 }
 
 .shows-block {
@@ -666,13 +666,14 @@ footer {
   }
 
   .hero-statement {
-    max-width: 11ch;
-    font-size: clamp(2.8rem, 13vw, 3.8rem);
+    max-width: 12ch;
+    font-size: clamp(2.15rem, 10.5vw, 2.75rem);
   }
 
   .hero-intro {
-    margin: 1.2rem 0 2rem;
-    font-size: 0.94rem;
+    margin: 1.1rem 0 1.75rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
   }
 
   .shows-heading > div {
