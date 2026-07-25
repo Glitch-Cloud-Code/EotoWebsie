@@ -321,6 +321,7 @@ describe('logo flame visibility', () => {
         depthTest: boolean
         opacity: number
         transparent: boolean
+        uniforms?: { uTime?: { value: number } }
         visible: boolean
       }
       const geometry = object.geometry as {
@@ -337,6 +338,7 @@ describe('logo flame visibility', () => {
           depthTest: material.depthTest,
           parentName: object.parent?.name ?? '',
           transparent: material.transparent,
+          uniformTime: material.uniforms?.uTime?.value ?? 0,
           vertexCount: geometry.attributes.position?.count ?? 0,
           visible: object.visible && material.visible,
           z: object.position.z,
@@ -353,6 +355,7 @@ describe('logo flame visibility', () => {
     expect(atmosphere?.rays.depthTest).toBe(true)
     expect(atmosphere?.rays.parentName).not.toBe('logo-rotating-root')
     expect(atmosphere?.rays.transparent).toBe(true)
+    expect(atmosphere?.rays.uniformTime).toBeGreaterThan(0)
     expect(atmosphere?.rays.vertexCount).toBeGreaterThan(0)
     expect(atmosphere?.rays.visible).toBe(true)
   }, 30_000)

@@ -14,6 +14,9 @@ describe('GodRays material', () => {
     expect(material.toneMapped).toBe(false)
     expect(material.transparent).toBe(true)
     expect(material.fragmentShader).toContain(LOGO_GOD_RAY_ALPHA.toFixed(2))
+    expect(material.vertexShader).toContain('uniform float uTime')
+    expect(material.vertexShader).toContain('raySway')
+    expect(material.vertexShader).toContain('rayBreathing')
 
     material.dispose()
   })

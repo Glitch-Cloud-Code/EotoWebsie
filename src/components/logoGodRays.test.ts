@@ -3,8 +3,10 @@ import {
   createGodRayGeometryData,
   LOGO_GOD_RAY_ALPHA,
   LOGO_GOD_RAY_COUNT,
+  LOGO_GOD_RAY_NEAR_FADE,
   LOGO_GOD_RAY_RENDER_ORDER,
   LOGO_GOD_RAY_SCALE,
+  LOGO_GOD_RAY_SWAY,
   LOGO_GOD_RAY_Z,
 } from './logoGodRays'
 import { createSeededRandom } from '../utils/random'
@@ -20,7 +22,9 @@ describe('logo god rays', () => {
     expect(Array.from(first.positions.slice(0, 18))).toEqual(Array.from(second.positions.slice(0, 18)))
     expect(new Set(Array.from({ length: first.positions.length / 3 }, (_, index) => first.positions[index * 3])).size).toBeGreaterThan(1)
     expect(Math.min(...Array.from(first.fades))).toBe(0)
-    expect(Math.max(...Array.from(first.fades))).toBeGreaterThan(0.6)
+    expect(Math.max(...Array.from(first.fades))).toBeCloseTo(
+      LOGO_GOD_RAY_NEAR_FADE,
+    )
     expect(
       Array.from({ length: first.positions.length / 3 }, (_, index) => first.positions[index * 3 + 2]).every(
         (z) => Math.abs(z - LOGO_GOD_RAY_Z) < 0.001,
@@ -29,9 +33,11 @@ describe('logo god rays', () => {
   })
 
   it('renders behind particles and text overlays', () => {
-    expect(LOGO_GOD_RAY_ALPHA).toBeGreaterThanOrEqual(0.08)
-    expect(LOGO_GOD_RAY_ALPHA).toBeLessThanOrEqual(0.12)
-    expect(LOGO_GOD_RAY_COUNT).toBeLessThanOrEqual(10)
+    expect(LOGO_GOD_RAY_ALPHA).toBeGreaterThanOrEqual(0.04)
+    expect(LOGO_GOD_RAY_ALPHA).toBeLessThanOrEqual(0.07)
+    expect(LOGO_GOD_RAY_COUNT).toBeLessThanOrEqual(8)
+    expect(LOGO_GOD_RAY_NEAR_FADE).toBeLessThanOrEqual(0.55)
+    expect(LOGO_GOD_RAY_SWAY).toBeLessThanOrEqual(0.025)
     expect(LOGO_GOD_RAY_Z).toBeLessThan(-20)
     expect(LOGO_GOD_RAY_RENDER_ORDER).toBeLessThan(5)
   })

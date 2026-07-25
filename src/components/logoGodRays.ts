@@ -1,8 +1,10 @@
 import { createSeededRandom, type RandomFn } from '../utils/random'
 
-export const LOGO_GOD_RAY_COUNT = 10
-export const LOGO_GOD_RAY_ALPHA = 0.1
+export const LOGO_GOD_RAY_COUNT = 8
+export const LOGO_GOD_RAY_ALPHA = 0.06
+export const LOGO_GOD_RAY_NEAR_FADE = 0.52
 export const LOGO_GOD_RAY_RENDER_ORDER = 1
+export const LOGO_GOD_RAY_SWAY = 0.022
 export const LOGO_GOD_RAY_Z = -30
 export const LOGO_GOD_RAY_SCALE = 0.031
 
@@ -49,10 +51,10 @@ export function createGodRayGeometryData(
     const nearHalfWidth = Math.max(scaledWidth, scaledHeight) * spread * 0.2
     const farHalfWidth = Math.max(scaledWidth, scaledHeight) * spread
     const vertices = [
-      [nearCenter.x - tangent.x * nearHalfWidth, nearCenter.y - tangent.y * nearHalfWidth, LOGO_GOD_RAY_Z, 0.68],
-      [nearCenter.x + tangent.x * nearHalfWidth, nearCenter.y + tangent.y * nearHalfWidth, LOGO_GOD_RAY_Z, 0.68],
+      [nearCenter.x - tangent.x * nearHalfWidth, nearCenter.y - tangent.y * nearHalfWidth, LOGO_GOD_RAY_Z, LOGO_GOD_RAY_NEAR_FADE],
+      [nearCenter.x + tangent.x * nearHalfWidth, nearCenter.y + tangent.y * nearHalfWidth, LOGO_GOD_RAY_Z, LOGO_GOD_RAY_NEAR_FADE],
       [farCenter.x - tangent.x * farHalfWidth, farCenter.y - tangent.y * farHalfWidth, LOGO_GOD_RAY_Z, 0],
-      [nearCenter.x + tangent.x * nearHalfWidth, nearCenter.y + tangent.y * nearHalfWidth, LOGO_GOD_RAY_Z, 0.68],
+      [nearCenter.x + tangent.x * nearHalfWidth, nearCenter.y + tangent.y * nearHalfWidth, LOGO_GOD_RAY_Z, LOGO_GOD_RAY_NEAR_FADE],
       [farCenter.x + tangent.x * farHalfWidth, farCenter.y + tangent.y * farHalfWidth, LOGO_GOD_RAY_Z, 0],
       [farCenter.x - tangent.x * farHalfWidth, farCenter.y - tangent.y * farHalfWidth, LOGO_GOD_RAY_Z, 0],
     ]
