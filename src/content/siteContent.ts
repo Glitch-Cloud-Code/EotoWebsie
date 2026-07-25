@@ -146,9 +146,9 @@ export const siteContent: SiteContent = {
       kicker: 'Featured watch',
       title: 'Official channel',
       description:
-        'Releases, live cuts, and the next moving picture from the band.',
-      image: `${base}assets/gallery/logo-mockup.jpg`,
-      imageAlt: 'Echoes Of The Orion metallic logo artwork',
+        'Official videos, live cuts, and new releases from the band.',
+      image: `${base}assets/photos/band-vocalist-wide.jpg`,
+      imageAlt: 'Echoes Of The Orion vocalist performing under red and blue light',
       url: 'https://youtube.com/@echoesoftheorion?si=PHvCrsPm1_OZV35t',
     },
     links: [
@@ -169,25 +169,25 @@ export const siteContent: SiteContent = {
     title: 'Melody with pressure behind it.',
     paragraphs: [
       'Echoes Of The Orion leans into contrast: weight and lift, sharp edges and open space, motion and restraint. The sound stays rooted in metal while leaving room for melody to steer the emotional line.',
-      'The site follows the same logic. Minimal copy, strong atmosphere, and a front page that puts the logo and the next live move in immediate view.',
+      'Songs move between tightly wound riffs, open melodic passages, and vocal lines built to carry both tension and release.',
     ],
   },
   gallery: [
     {
-      alt: 'Three-dimensional Echoes Of The Orion logo mockup',
-      caption: 'The mark in metal',
+      alt: 'Echoes Of The Orion performing together on a dark club stage',
+      caption: 'On stage',
       priority: true,
-      src: `${base}assets/gallery/logo-mockup.jpg`,
+      src: `${base}assets/photos/band-live-wide.jpg`,
     },
     {
-      alt: 'Illustrated falling figure artwork',
-      caption: 'Everyday - full artwork',
-      src: `${base}assets/gallery/everyday-full.png`,
+      alt: 'Echoes Of The Orion vocalist singing under red stage light',
+      caption: 'At the front',
+      src: `${base}assets/photos/band-vocalist.jpg`,
     },
     {
-      alt: 'Illustrated portrait artwork',
-      caption: 'Everyday - figure study',
-      src: `${base}assets/gallery/everyday-man.png`,
+      alt: 'Echoes Of The Orion bassist playing a white bass on stage',
+      caption: 'Low-end pressure',
+      src: `${base}assets/photos/band-bassist.jpg`,
     },
   ],
   links: [

@@ -339,6 +339,7 @@ footer {
   min-height: inherit;
   object-fit: cover;
   transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  object-position: 58% center;
 }
 
 .featured-watch-shade {
@@ -486,6 +487,14 @@ footer {
   height: 100%;
   object-fit: cover;
   transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.gallery-item-2 img {
+  object-position: center 34%;
+}
+
+.gallery-item-3 img {
+  object-position: center 42%;
 }
 
 .gallery-item figcaption {
@@ -685,6 +694,10 @@ footer {
 
   .featured-watch {
     min-height: 27rem;
+  }
+
+  .featured-watch > img {
+    object-position: 68% center;
   }
 
   .featured-watch-content {

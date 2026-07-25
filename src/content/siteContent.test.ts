@@ -1,7 +1,9 @@
+import { readFile } from 'node:fs/promises'
 import { describe, expect, it } from 'vitest'
 import {
   createIsoDate,
   formatShowDateParts,
+  siteContent,
   type Show,
 } from './siteContent'
 
@@ -42,4 +44,21 @@ describe('site content helpers', () => {
       expect(() => createIsoDate(value)).toThrow(`Invalid ISO show date: ${value}`)
     },
   )
+
+  it('uses distinct real performance photos for primary media', async () => {
+    const sources = [
+      siteContent.videos.featured.image,
+      ...siteContent.gallery.map((photo) => photo.src),
+    ]
+
+    expect(new Set(sources).size).toBe(sources.length)
+    expect(sources.every((src) => src.includes('assets/photos/'))).toBe(true)
+
+    const assets = await Promise.all(
+      sources.map((src) =>
+        readFile(`public/${src.replace(import.meta.env.BASE_URL, '')}`),
+      ),
+    )
+    expect(assets.every((asset) => asset.length > 250_000)).toBe(true)
+  })
 })
