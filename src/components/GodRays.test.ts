@@ -1,10 +1,17 @@
 import { AdditiveBlending, DoubleSide } from 'three'
 import { describe, expect, it } from 'vitest'
 import { createGodRayMaterial } from './logoGodRayMaterial'
-import { LOGO_GOD_RAY_ALPHA } from './logoGodRays'
+import {
+  LOGO_GOD_RAY_ALPHA,
+  LOGO_GOD_RAY_BEND,
+  LOGO_GOD_RAY_DEPTH_SWAY,
+  LOGO_GOD_RAY_HAZE_ALPHA,
+  LOGO_GOD_RAY_LIFECYCLE_SECONDS,
+  LOGO_GOD_RAY_WIDTH_PULSE,
+} from './logoGodRays'
 
 describe('GodRays material', () => {
-  it('stays visible from both sides and outside scene lighting', () => {
+  it('uses additive depth-aware volumetric-style compositing', () => {
     const material = createGodRayMaterial()
 
     expect(material.blending).toBe(AdditiveBlending)
@@ -15,9 +22,43 @@ describe('GodRays material', () => {
     expect(material.transparent).toBe(true)
     expect(material.fragmentShader).toContain(LOGO_GOD_RAY_ALPHA.toFixed(2))
     expect(material.vertexShader).toContain('uniform float uTime')
-    expect(material.vertexShader).toContain('raySway')
-    expect(material.vertexShader).toContain('rayBreathing')
+    expect(material.vertexShader).toContain('aAlong')
+    expect(material.vertexShader).toContain('aAcross')
+    expect(material.vertexShader).toContain('aLifecycleSeed')
+    expect(material.vertexShader).toContain('currentA')
+    expect(material.vertexShader).toContain('currentB')
+    expect(material.vertexShader).toContain('currentC')
+    expect(material.vertexShader).toContain(LOGO_GOD_RAY_BEND.toFixed(1))
+    expect(material.vertexShader).toContain(
+      LOGO_GOD_RAY_DEPTH_SWAY.toFixed(1),
+    )
+    expect(material.vertexShader).toContain(
+      LOGO_GOD_RAY_WIDTH_PULSE.toFixed(2),
+    )
+    expect(material.fragmentShader).toContain('fbm')
+    expect(material.fragmentShader).toContain('broadDensity')
+    expect(material.fragmentShader).toContain('fineDensity')
+    expect(material.fragmentShader).toContain('breakup')
+    expect(material.fragmentShader).toContain('caustic')
+    expect(material.fragmentShader).toContain('extinction')
+    expect(material.fragmentShader).toContain('lifecycleCycle')
+    expect(material.fragmentShader).toContain('forming')
+    expect(material.fragmentShader).toContain('collapsing')
+    expect(material.fragmentShader).toContain(
+      LOGO_GOD_RAY_LIFECYCLE_SECONDS.toFixed(1),
+    )
+    expect(material.fragmentShader).toContain('steelCore')
 
     material.dispose()
+  })
+
+  it('provides a broader low-alpha haze pass', () => {
+    const haze = createGodRayMaterial({ haze: true })
+
+    expect(haze.fragmentShader).toContain(LOGO_GOD_RAY_HAZE_ALPHA.toFixed(2))
+    expect(haze.vertexShader).toContain('aAcross * 2.4')
+    expect(haze.fragmentShader).toContain('exp(-1.35')
+
+    haze.dispose()
   })
 })

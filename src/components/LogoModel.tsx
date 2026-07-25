@@ -76,6 +76,7 @@ export function LogoModel({
         <DetachedLogoEffects
           logoLayout={logoLayout}
           onSparkComplete={removeSparkBurst}
+          quality={quality}
           sparkBursts={sparkBursts}
         />
       ) : null}

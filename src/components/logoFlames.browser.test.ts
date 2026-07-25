@@ -52,6 +52,85 @@ async function readLogoCanvasStats(page: Awaited<ReturnType<Browser['newPage']>>
   })
 }
 
+async function readIsolatedGodRayStats(
+  page: Awaited<ReturnType<Browser['newPage']>>,
+  timeSeconds?: number,
+) {
+  return page.evaluate(({ timeSeconds }) => {
+    const scene = window.__EOTO_LOGO_SCENE__
+    const canvas = document.querySelector('canvas')
+    const ray = scene?.getObjectByName('logo-god-rays')
+    const haze = scene?.getObjectByName('logo-god-ray-haze')
+    const gl =
+      canvas?.getContext('webgl2', { preserveDrawingBuffer: true }) ??
+      canvas?.getContext('webgl', { preserveDrawingBuffer: true })
+
+    if (!scene || !canvas || !ray || !gl || !window.__EOTO_RENDER_LOGO_FRAME__) {
+      throw new Error('God-ray diagnostics unavailable')
+    }
+
+    scene.traverse((object) => {
+      if (
+        object !== ray &&
+        object !== haze &&
+        'material' in object
+      ) {
+        object.visible = false
+      }
+    })
+    for (const effect of [ray, haze]) {
+      if (!effect || !('material' in effect) || timeSeconds === undefined) {
+        continue
+      }
+
+      const material = effect.material as {
+        uniforms?: { uTime?: { value: number } }
+      }
+      if (material.uniforms?.uTime) {
+        material.uniforms.uTime.value = timeSeconds
+      }
+    }
+    window.__EOTO_RENDER_LOGO_FRAME__()
+
+    const pixels = new Uint8Array(canvas.width * canvas.height * 4)
+    gl.readPixels(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      pixels,
+    )
+
+    let visiblePixels = 0
+    let totalIntensity = 0
+    let weightedIntensity = 0
+    const regionIntensity = [0, 0, 0]
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      const intensity =
+        pixels[index] + pixels[index + 1] + pixels[index + 2]
+
+      if (pixels[index + 3] > 2 && intensity > 18) {
+        visiblePixels += 1
+        totalIntensity += intensity
+        weightedIntensity += intensity * ((index / 4) % 997 + 1)
+        const x = (index / 4) % canvas.width
+        const region = Math.min(2, Math.floor((x / canvas.width) * 3))
+        regionIntensity[region] += intensity
+      }
+    }
+
+    return {
+      totalIntensity,
+      visiblePixels,
+      weightedIntensity,
+      regionIntensity,
+    }
+  }, { timeSeconds })
+}
+
 describe('logo flame visibility', () => {
   beforeAll(async () => {
     server = await createServer({
@@ -312,6 +391,7 @@ describe('logo flame visibility', () => {
     const atmosphere = await page.evaluate(() => {
       const scene = window.__EOTO_LOGO_SCENE__
       const object = scene?.getObjectByName('logo-god-rays')
+      const haze = scene?.getObjectByName('logo-god-ray-haze')
       const halo = scene?.getObjectByName('logo-halo')
       if (!object || !('material' in object) || !('geometry' in object)) {
         return null
@@ -325,8 +405,19 @@ describe('logo flame visibility', () => {
         visible: boolean
       }
       const geometry = object.geometry as {
-        attributes: { position?: { count: number } }
+        attributes: {
+          aAcross?: { count: number }
+          aAlong?: { count: number }
+          aLifecycleSeed?: { count: number }
+          position?: { count: number }
+        }
+        boundingBox?: {
+          max: { z: number }
+          min: { z: number }
+        }
+        computeBoundingBox: () => void
       }
+      geometry.computeBoundingBox()
 
       return {
         halo: {
@@ -334,30 +425,69 @@ describe('logo flame visibility', () => {
           visible: Boolean(halo?.visible),
           z: halo?.position.z ?? 0,
         },
+        hazeVisible: Boolean(haze?.visible),
         rays: {
+          alongVertexCount: geometry.attributes.aAlong?.count ?? 0,
           depthTest: material.depthTest,
+          featherVertexCount: geometry.attributes.aAcross?.count ?? 0,
+          lifecycleVertexCount:
+            geometry.attributes.aLifecycleSeed?.count ?? 0,
+          fieldMotion:
+            Math.abs(object.position.x) +
+            Math.abs(object.position.y) +
+            Math.abs(object.rotation.z),
           parentName: object.parent?.name ?? '',
           transparent: material.transparent,
           uniformTime: material.uniforms?.uTime?.value ?? 0,
           vertexCount: geometry.attributes.position?.count ?? 0,
           visible: object.visible && material.visible,
-          z: object.position.z,
+          zMax: geometry.boundingBox?.max.z ?? 0,
+          zMin: geometry.boundingBox?.min.z ?? 0,
         },
       }
     })
+    const rayPixels = await readIsolatedGodRayStats(page, 0)
+    const movedRayPixels = await readIsolatedGodRayStats(page, 4.75)
 
     await page.close()
 
     expect(atmosphere).not.toBeNull()
     expect(atmosphere?.halo.parentName).not.toBe('logo-rotating-root')
     expect(atmosphere?.halo.visible).toBe(true)
-    expect(atmosphere?.halo.z).toBeLessThan(atmosphere?.rays.z ?? 0)
+    expect(atmosphere?.halo.z).toBeLessThan(atmosphere?.rays.zMin ?? 0)
+    expect(atmosphere?.hazeVisible).toBe(true)
+    expect(atmosphere?.rays.alongVertexCount).toBe(
+      atmosphere?.rays.vertexCount,
+    )
     expect(atmosphere?.rays.depthTest).toBe(true)
+    expect(atmosphere?.rays.featherVertexCount).toBe(
+      atmosphere?.rays.vertexCount,
+    )
+    expect(atmosphere?.rays.lifecycleVertexCount).toBe(
+      atmosphere?.rays.vertexCount,
+    )
+    expect(atmosphere?.rays.fieldMotion).toBeGreaterThan(0.01)
     expect(atmosphere?.rays.parentName).not.toBe('logo-rotating-root')
     expect(atmosphere?.rays.transparent).toBe(true)
     expect(atmosphere?.rays.uniformTime).toBeGreaterThan(0)
-    expect(atmosphere?.rays.vertexCount).toBeGreaterThan(0)
+    expect(atmosphere?.rays.vertexCount).toBeGreaterThan(1_000)
     expect(atmosphere?.rays.visible).toBe(true)
+    expect(atmosphere?.rays.zMin).toBeLessThan(-45)
+    expect(atmosphere?.rays.zMax).toBeGreaterThan(-14)
+    expect(atmosphere?.rays.zMax).toBeLessThan(0)
+    expect(rayPixels.visiblePixels).toBeGreaterThan(1_000)
+    expect(rayPixels.totalIntensity).toBeGreaterThan(100_000)
+    expect(
+      rayPixels.regionIntensity.filter((intensity) => intensity > 20_000),
+    ).toHaveLength(3)
+    expect(
+      movedRayPixels.regionIntensity.filter((intensity) => intensity > 20_000),
+    ).toHaveLength(3)
+    expect(
+      Math.abs(
+        movedRayPixels.weightedIntensity - rayPixels.weightedIntensity,
+      ),
+    ).toBeGreaterThan(100_000)
   }, 30_000)
 
   it('renders an upright, opaque GLB model', async () => {
@@ -538,6 +668,30 @@ describe('logo flame visibility', () => {
     await logo.waitFor({ state: 'visible', timeout: 10_000 })
     expect(await logo.getAttribute('data-logo-quality')).toBe('low')
     expect(await logo.getAttribute('data-rendering')).toBe('active')
+    await page.waitForFunction(
+      () => Boolean(window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-god-rays')),
+      undefined,
+      { timeout: 10_000 },
+    )
+    const rayBudget = await page.evaluate(() => {
+      const scene = window.__EOTO_LOGO_SCENE__
+      const rays = scene?.getObjectByName('logo-god-rays')
+      const vertexCount =
+        rays && 'geometry' in rays
+          ? (
+              rays.geometry as {
+                attributes: { position?: { count: number } }
+              }
+            ).attributes.position?.count ?? 0
+          : 0
+
+      return {
+        haze: Boolean(scene?.getObjectByName('logo-god-ray-haze')),
+        vertexCount,
+      }
+    })
+    expect(rayBudget.haze).toBe(false)
+    expect(rayBudget.vertexCount).toBeLessThan(500)
 
     const toggle = page.locator('.menu-toggle')
     await toggle.waitFor({ state: 'visible', timeout: 10_000 })

@@ -3,7 +3,7 @@ import { AdditiveBlending, ShaderMaterial } from 'three'
 export const LOGO_HALO_ALPHA = 0.14
 export const LOGO_HALO_RENDER_ORDER = 0
 export const LOGO_HALO_SCALE = 0.031
-export const LOGO_HALO_Z = -42
+export const LOGO_HALO_Z = -60
 
 export function createLogoHaloMaterial() {
   return new ShaderMaterial({

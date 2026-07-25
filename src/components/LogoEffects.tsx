@@ -38,18 +38,24 @@ export function AttachedLogoEffects({
 type DetachedLogoEffectsProps = {
   logoLayout: LogoLayout
   onSparkComplete: (id: number) => void
+  quality: LogoQuality
   sparkBursts: LogoSparkBurst[]
 }
 
 export function DetachedLogoEffects({
   logoLayout,
   onSparkComplete,
+  quality,
   sparkBursts,
 }: DetachedLogoEffectsProps) {
   return (
     <>
       <LogoHalo height={logoLayout.height} width={logoLayout.width} />
-      <GodRays height={logoLayout.height} width={logoLayout.width} />
+      <GodRays
+        height={logoLayout.height}
+        quality={quality}
+        width={logoLayout.width}
+      />
       {sparkBursts.map((burst) => (
         <group
           key={burst.id}

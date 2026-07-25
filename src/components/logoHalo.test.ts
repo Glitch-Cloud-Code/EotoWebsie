@@ -7,14 +7,14 @@ import {
 } from './logoHaloMaterial'
 import {
   LOGO_GOD_RAY_RENDER_ORDER,
-  LOGO_GOD_RAY_Z,
+  LOGO_GOD_RAY_SOURCE_Z_MIN,
 } from './logoGodRays'
 
 describe('logo halo', () => {
   it('stays subtle and behind every atmospheric layer', () => {
     expect(LOGO_HALO_ALPHA).toBeGreaterThanOrEqual(0.1)
     expect(LOGO_HALO_ALPHA).toBeLessThanOrEqual(0.16)
-    expect(LOGO_HALO_Z).toBeLessThan(LOGO_GOD_RAY_Z)
+    expect(LOGO_HALO_Z).toBeLessThan(LOGO_GOD_RAY_SOURCE_Z_MIN)
     expect(LOGO_HALO_RENDER_ORDER).toBeLessThan(LOGO_GOD_RAY_RENDER_ORDER)
   })
 
