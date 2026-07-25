@@ -72,14 +72,13 @@ export function LogoModel({
           </group>
         ) : null}
       </group>
-      {!reduceMotion ? (
-        <DetachedLogoEffects
-          logoLayout={logoLayout}
-          onSparkComplete={removeSparkBurst}
-          quality={quality}
-          sparkBursts={sparkBursts}
-        />
-      ) : null}
+      <DetachedLogoEffects
+        logoLayout={logoLayout}
+        onSparkComplete={removeSparkBurst}
+        quality={quality}
+        reduceMotion={reduceMotion}
+        sparkBursts={sparkBursts}
+      />
     </>
   )
 }

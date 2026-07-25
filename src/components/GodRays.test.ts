@@ -8,6 +8,7 @@ import {
   LOGO_GOD_RAY_EDGE_FADE_NDC,
   LOGO_GOD_RAY_HAZE_ALPHA,
   LOGO_GOD_RAY_LIFECYCLE_SECONDS,
+  LOGO_GOD_RAY_REDUCED_TIME,
   LOGO_GOD_RAY_WORDMARK_MIN_ALPHA,
   LOGO_GOD_RAY_WIDTH_PULSE,
 } from './logoGodRays'
@@ -22,6 +23,7 @@ describe('GodRays material', () => {
     expect(material.side).toBe(DoubleSide)
     expect(material.toneMapped).toBe(false)
     expect(material.transparent).toBe(true)
+    expect(material.name).toBe('logo-god-rays-defined')
     expect(material.fragmentShader).toContain(LOGO_GOD_RAY_ALPHA.toFixed(2))
     expect(material.vertexShader).toContain('uniform float uTime')
     expect(material.vertexShader).toContain('aAlong')
@@ -67,12 +69,31 @@ describe('GodRays material', () => {
   })
 
   it('provides a broader low-alpha haze pass', () => {
-    const haze = createGodRayMaterial({ haze: true, logoHeight: 200 })
+    const haze = createGodRayMaterial({
+      logoHeight: 200,
+      profile: 'haze',
+    })
 
     expect(haze.fragmentShader).toContain(LOGO_GOD_RAY_HAZE_ALPHA.toFixed(2))
+    expect(haze.name).toBe('logo-god-rays-haze')
     expect(haze.vertexShader).toContain('aAcross * 2.4')
     expect(haze.fragmentShader).toContain('exp(-1.35')
 
     haze.dispose()
+  })
+
+  it('provides one frozen soft pass for reduced motion', () => {
+    const soft = createGodRayMaterial({
+      logoHeight: 200,
+      profile: 'soft',
+      staticTime: LOGO_GOD_RAY_REDUCED_TIME,
+    })
+
+    expect(soft.name).toBe('logo-god-rays-soft')
+    expect(soft.uniforms.uTime.value).toBe(LOGO_GOD_RAY_REDUCED_TIME)
+    expect(soft.vertexShader).toContain('aAcross * 0.9')
+    expect(soft.fragmentShader).toContain('exp(-2.05')
+
+    soft.dispose()
   })
 })

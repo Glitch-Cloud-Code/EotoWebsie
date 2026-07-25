@@ -442,6 +442,7 @@ describe('logo flame visibility', () => {
 
       const material = object.material as {
         depthTest: boolean
+        name: string
         opacity: number
         transparent: boolean
         uniforms?: { uTime?: { value: number } }
@@ -481,6 +482,10 @@ describe('logo flame visibility', () => {
           z: halo?.position.z ?? 0,
         },
         hazeVisible: Boolean(haze?.visible),
+        hazeMaterialName:
+          haze && 'material' in haze
+            ? (haze.material as { name: string }).name
+            : '',
         rays: {
           alongVertexCount: geometry.attributes.aAlong?.count ?? 0,
           depthLayerVertexCount:
@@ -493,6 +498,7 @@ describe('logo flame visibility', () => {
             geometry.attributes.aLifecycleRate?.count ?? 0,
           motionRateVertexCount:
             geometry.attributes.aMotionRate?.count ?? 0,
+          materialName: material.name,
           fieldMotion:
             Math.abs(object.position.x) +
             Math.abs(object.position.y) +
@@ -520,6 +526,7 @@ describe('logo flame visibility', () => {
     expect(atmosphere?.halo.visible).toBe(true)
     expect(atmosphere?.halo.z).toBeLessThan(atmosphere?.rays.zMin ?? 0)
     expect(atmosphere?.hazeVisible).toBe(true)
+    expect(atmosphere?.hazeMaterialName).toBe('logo-god-rays-haze')
     expect(atmosphere?.rays.alongVertexCount).toBe(
       atmosphere?.rays.vertexCount,
     )
@@ -539,6 +546,7 @@ describe('logo flame visibility', () => {
     expect(atmosphere?.rays.motionRateVertexCount).toBe(
       atmosphere?.rays.vertexCount,
     )
+    expect(atmosphere?.rays.materialName).toBe('logo-god-rays-defined')
     expect(atmosphere?.rays.fieldMotion).toBeGreaterThan(0.01)
     expect(atmosphere?.rays.parentName).not.toBe('logo-rotating-root')
     expect(atmosphere?.rays.transparent).toBe(true)
@@ -724,7 +732,7 @@ describe('logo flame visibility', () => {
     expect(rotation).toBeGreaterThan(0.05)
   }, 30_000)
 
-  it('removes logo motion effects when reduced motion is requested', async () => {
+  it('keeps a frozen atmosphere when reduced motion is requested', async () => {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(url, { waitUntil: 'networkidle' })
@@ -734,19 +742,58 @@ describe('logo flame visibility', () => {
     const state = await page.evaluate(() => {
       const scene = window.__EOTO_LOGO_SCENE__
       const root = scene?.getObjectByName('logo-rotating-root')
+      const rays = scene?.getObjectByName('logo-god-rays')
+      const rayMaterial =
+        rays && 'material' in rays
+          ? (rays.material as {
+              name: string
+              uniforms?: { uTime?: { value: number } }
+            })
+          : null
+      const vertexCount =
+        rays && 'geometry' in rays
+          ? (
+              rays.geometry as {
+                attributes: { position?: { count: number } }
+              }
+            ).attributes.position?.count ?? 0
+          : 0
+
       return {
-        rays: Boolean(scene?.getObjectByName('logo-god-rays')),
+        flame: Boolean(scene?.getObjectByName('logo-flame-particles')),
+        halo: Boolean(scene?.getObjectByName('logo-halo')),
+        haze: Boolean(scene?.getObjectByName('logo-god-ray-haze')),
+        materialName: rayMaterial?.name ?? '',
+        rays: Boolean(rays),
         rotation: root
           ? Math.abs(root.quaternion.x) +
               Math.abs(root.quaternion.y) +
               Math.abs(root.quaternion.z)
           : 0,
+        smoke: Boolean(scene?.getObjectByName('logo-smoke-particles')),
+        sparks:
+          scene?.getObjectsByProperty('name', 'logo-spark-burst').length ?? 0,
+        time: rayMaterial?.uniforms?.uTime?.value ?? 0,
+        vertexCount,
       }
     })
+    const rayPixels = await readIsolatedGodRayStats(page)
+    const shell = page.locator('.logo-canvas-shell')
+
+    expect(await shell.getAttribute('role')).toBe('img')
+    expect(state.flame).toBe(false)
+    expect(state.halo).toBe(true)
+    expect(state.haze).toBe(false)
+    expect(state.materialName).toBe('logo-god-rays-soft')
+    expect(state.rays).toBe(true)
+    expect(state.rotation).toBeLessThan(0.01)
+    expect(state.smoke).toBe(false)
+    expect(state.sparks).toBe(0)
+    expect(state.time).toBeCloseTo(2.8)
+    expect(state.vertexCount).toBe(168)
+    expect(rayPixels.visiblePixels).toBeGreaterThan(100)
 
     await page.close()
-    expect(state.rays).toBe(false)
-    expect(state.rotation).toBeLessThan(0.01)
   }, 30_000)
 
   it('opens and closes the mobile navigation menu', async () => {
@@ -820,12 +867,17 @@ describe('logo flame visibility', () => {
       return {
         cameraZ: window.__EOTO_LOGO_CAMERA__?.position.z ?? 0,
         haze: Boolean(scene?.getObjectByName('logo-god-ray-haze')),
+        materialName:
+          rays && 'material' in rays
+            ? (rays.material as { name: string }).name
+            : '',
         vertexCount,
       }
     })
     expect(rayBudget.cameraZ).toBeGreaterThan(160)
     expect(rayBudget.cameraZ).toBeLessThan(170)
     expect(rayBudget.haze).toBe(false)
+    expect(rayBudget.materialName).toBe('logo-god-rays-soft')
     expect(rayBudget.vertexCount).toBeLessThan(500)
 
     const toggle = page.locator('.menu-toggle')

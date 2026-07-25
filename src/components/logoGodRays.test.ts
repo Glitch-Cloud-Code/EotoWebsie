@@ -15,6 +15,7 @@ import {
   LOGO_GOD_RAY_PRIMARY_COUNT,
   LOGO_GOD_RAY_LIFECYCLE_SECONDS,
   LOGO_GOD_RAY_RENDER_ORDER,
+  LOGO_GOD_RAY_REDUCED_TIME,
   LOGO_GOD_RAY_SCALE,
   LOGO_GOD_RAY_SEGMENTS_HIGH,
   LOGO_GOD_RAY_SEGMENTS_LOW,
@@ -182,6 +183,30 @@ describe('logo god rays', () => {
     expect(lowData.positions).toHaveLength(
       lowRibbonCount * LOGO_GOD_RAY_SEGMENTS_LOW * 6 * 3,
     )
+  })
+
+  it('uses two visible frozen shafts for reduced motion', () => {
+    const budget = getGodRayGeometryBudget('high', true)
+    const data = createGodRayGeometryData(100, 200, {
+      quality: 'high',
+      random: createSeededRandom(3),
+      reduceMotion: true,
+    })
+
+    expect(budget).toEqual({
+      primaryCount: 2,
+      segments: LOGO_GOD_RAY_SEGMENTS_LOW,
+      subrayCount: 1,
+    })
+    expect(data.positions).toHaveLength(2 * LOGO_GOD_RAY_SEGMENTS_LOW * 6 * 3)
+    expect(
+      new Set(data.lifecycleSeeds).size,
+    ).toBe(2)
+    expect(
+      Array.from(new Set(data.lifecycleSeeds)).every(
+        (seed) => getGodRayLifecycle(LOGO_GOD_RAY_REDUCED_TIME, seed) > 0.9,
+      ),
+    ).toBe(true)
   })
 
   it('keeps layered field movement bounded', () => {

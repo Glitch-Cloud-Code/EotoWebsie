@@ -15,6 +15,7 @@ export const LOGO_GOD_RAY_FIELD_DRIFT = 0.65
 export const LOGO_GOD_RAY_FIELD_ROTATION = 0.008
 export const LOGO_GOD_RAY_HAZE_ALPHA = 0.11
 export const LOGO_GOD_RAY_LIFECYCLE_SECONDS = 9.5
+export const LOGO_GOD_RAY_REDUCED_TIME = 2.8
 export const LOGO_GOD_RAY_RENDER_ORDER = 1
 export const LOGO_GOD_RAY_SCALE = 0.031
 export const LOGO_GOD_RAY_SOURCE_Z_MIN = -54
@@ -39,6 +40,7 @@ export type GodRayGeometryData = {
 type GodRayGeometryOptions = {
   quality?: LogoQuality
   random?: RandomFn
+  reduceMotion?: boolean
 }
 
 function smoothstep(edge0: number, edge1: number, value: number) {
@@ -73,6 +75,12 @@ export function createGodRaySourceProgresses(
 ) {
   if (count <= 0) {
     return []
+  }
+
+  if (count === 2) {
+    return [0.28, 0.72].map(
+      (progress) => progress + (random() - 0.5) * 0.018,
+    )
   }
 
   const clusterCount = Math.min(3, count)
@@ -112,7 +120,18 @@ export function getGodRayLifecycle(timeSeconds: number, seed: number) {
   return forming * collapsing
 }
 
-export function getGodRayGeometryBudget(quality: LogoQuality) {
+export function getGodRayGeometryBudget(
+  quality: LogoQuality,
+  reduceMotion = false,
+) {
+  if (reduceMotion) {
+    return {
+      primaryCount: 2,
+      segments: LOGO_GOD_RAY_SEGMENTS_LOW,
+      subrayCount: 1,
+    }
+  }
+
   return quality === 'high'
     ? {
         primaryCount: LOGO_GOD_RAY_PRIMARY_COUNT,
@@ -152,10 +171,11 @@ export function createGodRayGeometryData(
   {
     quality = 'high',
     random = createSeededRandom(7727),
+    reduceMotion = false,
   }: GodRayGeometryOptions = {},
 ): GodRayGeometryData {
   const { primaryCount, segments, subrayCount } =
-    getGodRayGeometryBudget(quality)
+    getGodRayGeometryBudget(quality, reduceMotion)
   const ribbonCount = primaryCount * subrayCount
   const vertexCount = ribbonCount * segments * 6
   const positions = new Float32Array(vertexCount * 3)
@@ -219,10 +239,13 @@ export function createGodRayGeometryData(
       random() *
         (LOGO_GOD_RAY_TARGET_Z_MAX - LOGO_GOD_RAY_TARGET_Z_MIN)
     const primarySeed = random()
-    const lifecycleSeed =
-      ((primaryIndex + random() * 0.78) / primaryCount + random() * 0.025) % 1
-    const lifecycleRate = 0.82 + random() * 0.36
-    const motionRate = 0.84 + random() * 0.32
+    const lifecycleSeed = reduceMotion
+      ? primaryIndex * 0.22
+      : ((primaryIndex + random() * 0.78) / primaryCount +
+          random() * 0.025) %
+        1
+    const lifecycleRate = reduceMotion ? 1 : 0.82 + random() * 0.36
+    const motionRate = reduceMotion ? 1 : 0.84 + random() * 0.32
 
     for (let subrayIndex = 0; subrayIndex < subrayCount; subrayIndex += 1) {
       const pairedOffset =

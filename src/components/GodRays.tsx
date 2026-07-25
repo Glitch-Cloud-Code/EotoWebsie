@@ -5,6 +5,7 @@ import { createGodRayMaterial } from './logoGodRayMaterial'
 import {
   createGodRayGeometryData,
   getGodRayFieldTransform,
+  LOGO_GOD_RAY_REDUCED_TIME,
   LOGO_GOD_RAY_RENDER_ORDER,
 } from './logoGodRays'
 import type { LogoQuality } from './logoQuality'
@@ -12,10 +13,16 @@ import type { LogoQuality } from './logoQuality'
 type GodRaysProps = {
   height: number
   quality: LogoQuality
+  reduceMotion: boolean
   width: number
 }
 
-export function GodRays({ height, quality, width }: GodRaysProps) {
+export function GodRays({
+  height,
+  quality,
+  reduceMotion,
+  width,
+}: GodRaysProps) {
   const meshRef = useRef<Mesh>(null)
   const hazeRef = useRef<Mesh>(null)
 
@@ -29,7 +36,7 @@ export function GodRays({ height, quality, width }: GodRaysProps) {
       motionRates,
       positions,
       seeds,
-    } = createGodRayGeometryData(width, height, { quality })
+    } = createGodRayGeometryData(width, height, { quality, reduceMotion })
     const nextGeometry = new BufferGeometry()
 
     nextGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
@@ -56,18 +63,23 @@ export function GodRays({ height, quality, width }: GodRaysProps) {
       new Float32BufferAttribute(across, 1),
     )
     return nextGeometry
-  }, [height, quality, width])
+  }, [height, quality, reduceMotion, width])
 
   const material = useMemo(
-    () => createGodRayMaterial({ logoHeight: height }),
-    [height],
+    () =>
+      createGodRayMaterial({
+        logoHeight: height,
+        profile: quality === 'low' || reduceMotion ? 'soft' : 'defined',
+        staticTime: reduceMotion ? LOGO_GOD_RAY_REDUCED_TIME : 0,
+      }),
+    [height, quality, reduceMotion],
   )
   const hazeMaterial = useMemo(
     () =>
-      quality === 'high'
-        ? createGodRayMaterial({ haze: true, logoHeight: height })
+      quality === 'high' && !reduceMotion
+        ? createGodRayMaterial({ logoHeight: height, profile: 'haze' })
         : null,
-    [height, quality],
+    [height, quality, reduceMotion],
   )
 
   useEffect(() => {
@@ -79,6 +91,10 @@ export function GodRays({ height, quality, width }: GodRaysProps) {
   }, [geometry, hazeMaterial, material])
 
   useFrame((state) => {
+    if (reduceMotion) {
+      return
+    }
+
     const currentMesh = meshRef.current
     const currentHaze = hazeRef.current
     const transform = getGodRayFieldTransform(state.clock.elapsedTime)

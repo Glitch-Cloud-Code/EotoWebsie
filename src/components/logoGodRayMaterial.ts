@@ -17,21 +17,29 @@ import {
 } from './logoGodRays'
 
 type GodRayMaterialOptions = {
-  haze?: boolean
   logoHeight: number
+  profile?: 'defined' | 'haze' | 'soft'
+  staticTime?: number
 }
 
 export function createGodRayMaterial({
-  haze = false,
   logoHeight,
+  profile = 'defined',
+  staticTime = 0,
 }: GodRayMaterialOptions) {
-  const alpha = haze ? LOGO_GOD_RAY_HAZE_ALPHA : LOGO_GOD_RAY_ALPHA
-  const hazeSpread = haze ? 2.4 : 0
-  const edgeFalloff = haze ? 1.35 : 3.1
+  const alpha =
+    profile === 'haze'
+      ? LOGO_GOD_RAY_HAZE_ALPHA
+      : profile === 'soft'
+        ? 0.24
+        : LOGO_GOD_RAY_ALPHA
+  const hazeSpread = profile === 'haze' ? 2.4 : profile === 'soft' ? 0.9 : 0
+  const edgeFalloff =
+    profile === 'haze' ? 1.35 : profile === 'soft' ? 2.05 : 3.1
   const wordmarkHalfHeight =
     logoHeight * LOGO_GOD_RAY_SCALE * LOGO_GOD_RAY_WORDMARK_HEIGHT_RATIO
 
-  return new ShaderMaterial({
+  const material = new ShaderMaterial({
     blending: AdditiveBlending,
     depthTest: true,
     depthWrite: false,
@@ -39,7 +47,7 @@ export function createGodRayMaterial({
     toneMapped: false,
     transparent: true,
     uniforms: {
-      uTime: { value: 0 },
+      uTime: { value: staticTime },
     },
     vertexShader: `
       uniform float uTime;
@@ -256,4 +264,7 @@ export function createGodRayMaterial({
       }
     `,
   })
+
+  material.name = `logo-god-rays-${profile}`
+  return material
 }

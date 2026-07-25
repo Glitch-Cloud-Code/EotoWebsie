@@ -39,6 +39,7 @@ type DetachedLogoEffectsProps = {
   logoLayout: LogoLayout
   onSparkComplete: (id: number) => void
   quality: LogoQuality
+  reduceMotion: boolean
   sparkBursts: LogoSparkBurst[]
 }
 
@@ -46,6 +47,7 @@ export function DetachedLogoEffects({
   logoLayout,
   onSparkComplete,
   quality,
+  reduceMotion,
   sparkBursts,
 }: DetachedLogoEffectsProps) {
   return (
@@ -54,9 +56,10 @@ export function DetachedLogoEffects({
       <GodRays
         height={logoLayout.height}
         quality={quality}
+        reduceMotion={reduceMotion}
         width={logoLayout.width}
       />
-      {sparkBursts.map((burst) => (
+      {!reduceMotion ? sparkBursts.map((burst) => (
         <group
           key={burst.id}
           name="logo-spark-burst"
@@ -69,7 +72,7 @@ export function DetachedLogoEffects({
             origin={{ x: 0, y: 0, z: 0 }}
           />
         </group>
-      ))}
+      )) : null}
     </>
   )
 }
