@@ -106,26 +106,67 @@ async function readIsolatedGodRayStats(
     let visiblePixels = 0
     let totalIntensity = 0
     let weightedIntensity = 0
+    let edgeIntensity = 0
+    let edgeSamples = 0
+    let innerIntensity = 0
+    let innerSamples = 0
+    let wordmarkIntensity = 0
+    let wordmarkSamples = 0
+    let wordmarkSurroundIntensity = 0
+    let wordmarkSurroundSamples = 0
     const regionIntensity = [0, 0, 0]
 
     for (let index = 0; index < pixels.length; index += 4) {
       const intensity =
         pixels[index] + pixels[index + 1] + pixels[index + 2]
+      const pixelIndex = index / 4
+      const x = pixelIndex % canvas.width
+      const y = Math.floor(pixelIndex / canvas.width)
+      const normalizedX = x / canvas.width
+      const normalizedY = y / canvas.height
+      const edgeDistance = Math.min(
+        normalizedX,
+        1 - normalizedX,
+        normalizedY,
+        1 - normalizedY,
+      )
+      const centerDistanceY = Math.abs(normalizedY - 0.5)
+
+      if (edgeDistance < 0.04) {
+        edgeIntensity += intensity
+        edgeSamples += 1
+      } else if (edgeDistance > 0.12 && edgeDistance < 0.2) {
+        innerIntensity += intensity
+        innerSamples += 1
+      }
+
+      if (centerDistanceY < 0.075) {
+        wordmarkIntensity += intensity
+        wordmarkSamples += 1
+      } else if (centerDistanceY > 0.12 && centerDistanceY < 0.22) {
+        wordmarkSurroundIntensity += intensity
+        wordmarkSurroundSamples += 1
+      }
 
       if (pixels[index + 3] > 2 && intensity > 18) {
         visiblePixels += 1
         totalIntensity += intensity
         weightedIntensity += intensity * ((index / 4) % 997 + 1)
-        const x = (index / 4) % canvas.width
         const region = Math.min(2, Math.floor((x / canvas.width) * 3))
         regionIntensity[region] += intensity
       }
     }
 
     return {
+      edgeAverage: edgeIntensity / Math.max(edgeSamples, 1),
+      innerAverage: innerIntensity / Math.max(innerSamples, 1),
       totalIntensity,
       visiblePixels,
       weightedIntensity,
+      wordmarkAverage:
+        wordmarkIntensity / Math.max(wordmarkSamples, 1),
+      wordmarkSurroundAverage:
+        wordmarkSurroundIntensity / Math.max(wordmarkSurroundSamples, 1),
       regionIntensity,
     }
   }, { timeSeconds })
@@ -513,8 +554,10 @@ describe('logo flame visibility', () => {
         },
       }
     })
-    const rayPixels = await readIsolatedGodRayStats(page, 0)
-    const movedRayPixels = await readIsolatedGodRayStats(page, 4.75)
+    const raySamples = []
+    for (const time of [0, 3.2, 7.1]) {
+      raySamples.push(await readIsolatedGodRayStats(page, time))
+    }
 
     await page.close()
 
@@ -556,19 +599,29 @@ describe('logo flame visibility', () => {
     expect(atmosphere?.rays.zMin).toBeLessThan(-45)
     expect(atmosphere?.rays.zMax).toBeGreaterThan(-14)
     expect(atmosphere?.rays.zMax).toBeLessThan(0)
-    expect(rayPixels.visiblePixels).toBeGreaterThan(1_000)
-    expect(rayPixels.totalIntensity).toBeGreaterThan(100_000)
+    for (const sample of raySamples) {
+      expect(sample.visiblePixels).toBeGreaterThan(1_000)
+      expect(sample.totalIntensity).toBeGreaterThan(100_000)
+      expect(
+        sample.regionIntensity.filter((intensity) => intensity > 20_000),
+      ).toHaveLength(3)
+    }
+    expect(new Set(raySamples.map((sample) => sample.weightedIntensity)).size).toBe(
+      raySamples.length,
+    )
     expect(
-      rayPixels.regionIntensity.filter((intensity) => intensity > 20_000),
-    ).toHaveLength(3)
+      raySamples.reduce((total, sample) => total + sample.edgeAverage, 0),
+    ).toBeLessThan(
+      raySamples.reduce((total, sample) => total + sample.innerAverage, 0),
+    )
     expect(
-      movedRayPixels.regionIntensity.filter((intensity) => intensity > 20_000),
-    ).toHaveLength(3)
-    expect(
-      Math.abs(
-        movedRayPixels.weightedIntensity - rayPixels.weightedIntensity,
+      raySamples.reduce((total, sample) => total + sample.wordmarkAverage, 0),
+    ).toBeLessThan(
+      raySamples.reduce(
+        (total, sample) => total + sample.wordmarkSurroundAverage,
+        0,
       ),
-    ).toBeGreaterThan(100_000)
+    )
   }, 30_000)
 
   it('renders an upright, opaque GLB model', async () => {
