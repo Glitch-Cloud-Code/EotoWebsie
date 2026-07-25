@@ -850,10 +850,23 @@ describe('logo flame visibility', () => {
   }, 30_000)
 
   it('opens and closes the mobile navigation menu', async () => {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+    const page = await browser.newPage({
+      viewport: { width: 1280, height: 900 },
+    })
     await page.goto(url, { waitUntil: 'domcontentloaded' })
     const logo = page.locator('.logo-canvas-shell')
     await logo.waitFor({ state: 'visible', timeout: 10_000 })
+    expect(await logo.getAttribute('data-logo-quality')).toBe('high')
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('.logo-canvas-shell')
+          ?.getAttribute('data-logo-quality') === 'low',
+      undefined,
+      { timeout: 10_000 },
+    )
     expect(await logo.getAttribute('data-logo-quality')).toBe('low')
     expect(await logo.getAttribute('data-rendering')).toBe('active')
     await page.waitForFunction(

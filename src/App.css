@@ -272,9 +272,14 @@ footer {
 .logo-fallback-shell {
   position: relative;
   z-index: 1;
-  width: 100%;
-  max-width: 43rem;
+  width: min(100%, 43rem);
+  min-width: 0;
+  max-width: 100%;
   aspect-ratio: 1;
+}
+
+.logo-canvas-shell canvas {
+  max-width: 100%;
 }
 
 .logo-fallback-shell {
@@ -673,7 +678,8 @@ footer {
   }
 
   .hero-logo-pane {
-    max-width: calc(100vw - 1rem);
+    width: 100%;
+    max-width: 100%;
     min-height: 24rem;
   }
 
