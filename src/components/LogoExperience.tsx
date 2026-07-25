@@ -7,7 +7,7 @@ import {
   getLogoCameraDistance,
   LOGO_CAMERA_FOV,
 } from './logoCameraLayout'
-import { installLogoSceneProbe } from './logoDiagnostics'
+import { LogoDiagnostics } from './logoDiagnostics'
 import { LogoScene } from './LogoScene'
 import { normalizeViewportPointer, type PointerTarget } from './logoPointer'
 import { getLogoDpr, type LogoQuality } from './logoQuality'
@@ -149,12 +149,12 @@ export function LogoExperience({ alt, fallbackSrc }: LogoExperienceProps) {
           dpr={getLogoDpr(quality)}
           frameloop={frameLoop}
           gl={glOptions}
-          onCreated={({ camera, gl, scene }) => {
+          onCreated={({ gl }) => {
             gl.toneMapping = ACESFilmicToneMapping
             gl.toneMappingExposure = 1.05
-            installLogoSceneProbe(scene, camera, gl)
           }}
         >
+          <LogoDiagnostics />
           <LogoCamera
             height={logoMetadata.height}
             quality={quality}
