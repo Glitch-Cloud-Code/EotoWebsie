@@ -20,6 +20,9 @@ describe('logo lighting', () => {
     expect(LOGO_DIRECTIONAL_LIGHTS).toHaveLength(3)
     expect(LOGO_POINT_LIGHTS).toHaveLength(0)
     expect(LOGO_SPOT_LIGHTS).toHaveLength(1)
+    expect(LOGO_DIRECTIONAL_LIGHTS[0].intensity).toBeGreaterThan(
+      LOGO_DIRECTIONAL_LIGHTS[2].intensity,
+    )
   })
 
   it('uses neutral reflection panels with one restrained red accent', () => {
@@ -30,8 +33,9 @@ describe('logo lighting', () => {
       'red-edge-panel',
     ])
     expect(
-      LOGO_ENVIRONMENT_LIGHTS.every((light) => light.intensity <= 4),
+      LOGO_ENVIRONMENT_LIGHTS.every((light) => light.intensity <= 4.5),
     ).toBe(true)
+    expect(LOGO_ENVIRONMENT_LIGHTS[2].intensity).toBeLessThan(1)
   })
 
   it('uses a broad, soft red rim cone behind the logo', () => {
@@ -42,6 +46,7 @@ describe('logo lighting', () => {
     expect(rim.angle).toBeGreaterThanOrEqual(0.7)
     expect(rim.penumbra).toBeGreaterThanOrEqual(0.8)
     expect(rim.position[2]).toBeLessThan(0)
+    expect(rim.intensity).toBeLessThanOrEqual(700)
   })
 
   it('aims cone lights at the centered logo pivot', () => {

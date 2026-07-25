@@ -222,6 +222,8 @@ describe('logo flame visibility', () => {
         'logo-flame-particles',
         'logo-smoke-particles',
         'logo-god-rays',
+        'logo-god-ray-haze',
+        'logo-halo',
       ]) {
         const effect = scene.getObjectByName(name)
         if (effect) {
@@ -246,16 +248,40 @@ describe('logo flame visibility', () => {
         )
 
         let litPixels = 0
+        let neutralPixels = 0
+        let warmPixels = 0
         for (let index = 0; index < pixels.length; index += 4) {
+          const red = pixels[index]
+          const green = pixels[index + 1]
+          const blue = pixels[index + 2]
+          const intensity = red + green + blue
+
           if (
             pixels[index + 3] > 20 &&
-            pixels[index] + pixels[index + 1] + pixels[index + 2] > 185
+            intensity > 185
           ) {
             litPixels += 1
           }
+
+          if (
+            pixels[index + 3] > 20 &&
+            intensity > 210 &&
+            Math.max(red, green, blue) - Math.min(red, green, blue) < 55
+          ) {
+            neutralPixels += 1
+          }
+
+          if (
+            pixels[index + 3] > 20 &&
+            intensity > 210 &&
+            red > green * 1.25 &&
+            green > blue * 1.05
+          ) {
+            warmPixels += 1
+          }
         }
 
-        return { degrees, litPixels }
+        return { degrees, litPixels, neutralPixels, warmPixels }
       })
     })
 
@@ -263,6 +289,10 @@ describe('logo flame visibility', () => {
 
     expect(samples).toHaveLength(5)
     expect(samples[0].litPixels).toBeGreaterThan(4_000)
+    expect(samples[0].neutralPixels).toBeGreaterThan(1_500)
+    expect(samples[0].neutralPixels).toBeGreaterThan(
+      samples[0].warmPixels * 2,
+    )
     expect(Math.min(...samples.map((sample) => sample.litPixels))).toBeGreaterThan(700)
   }, 30_000)
 

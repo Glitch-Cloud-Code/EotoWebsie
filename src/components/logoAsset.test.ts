@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
   LOGO_GLB_ROTATION,
   LOGO_GLB_SCALE,
+  LOGO_MATERIAL_FRONT_AXIS,
   prepareLogoScene,
 } from './logoAsset'
 
@@ -32,8 +33,9 @@ describe('logo GLB asset', () => {
     expect(sourceMesh.material).toBe(originalMaterial)
   })
 
-  it('faces the source X plane toward the camera at scene scale', () => {
+  it('rotates the source diagonal XZ face toward the camera', () => {
     expect(LOGO_GLB_ROTATION[1]).toBe(-Math.PI / 4)
     expect(LOGO_GLB_SCALE).toBeGreaterThan(1)
+    expect(LOGO_MATERIAL_FRONT_AXIS).toEqual([1, 0, 1])
   })
 })

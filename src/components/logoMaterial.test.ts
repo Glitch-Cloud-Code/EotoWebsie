@@ -3,6 +3,7 @@ import {
   createForgedMetalMaterial,
   LOGO_MATERIAL_PRESET,
 } from './logoMaterial'
+import { LOGO_MATERIAL_FRONT_AXIS } from './logoAsset'
 
 describe('forged logo material', () => {
   it('stays opaque and physically metallic without UV texture maps', () => {
@@ -25,7 +26,10 @@ describe('forged logo material', () => {
     const shader = {
       fragmentShader:
         '#include <common>\n#include <color_fragment>\n#include <roughnessmap_fragment>',
-      uniforms: {},
+      uniforms: {} as Record<
+        string,
+        { value: { getHexString: () => string } }
+      >,
       vertexShader:
         '#include <common>\n#include <beginnormal_vertex>\n#include <begin_vertex>',
     }
@@ -33,11 +37,17 @@ describe('forged logo material', () => {
     material.onBeforeCompile(shader as never, null as never)
 
     expect(shader.vertexShader).toContain('vLogoObjectNormal = objectNormal')
+    expect(shader.fragmentShader).toContain(
+      `${LOGO_MATERIAL_FRONT_AXIS[0].toFixed(1)},`,
+    )
     expect(shader.fragmentShader).toContain('logoFrontMask')
     expect(shader.fragmentShader).toContain('logoBevelMask')
     expect(shader.fragmentShader).toContain('logoPits')
     expect(shader.fragmentShader).toContain('logoSurfaceRoughness')
-    expect(material.customProgramCacheKey()).toBe('eoto-forged-metal-v1')
+    expect(shader.uniforms.logoFaceColor.value.getHexString()).toBe(
+      LOGO_MATERIAL_PRESET.faceColor.slice(1),
+    )
+    expect(material.customProgramCacheKey()).toBe('eoto-forged-metal-v2')
 
     material.dispose()
   })
