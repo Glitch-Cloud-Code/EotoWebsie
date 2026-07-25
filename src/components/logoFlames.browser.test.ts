@@ -673,6 +673,50 @@ describe('logo flame visibility', () => {
       undefined,
       { timeout: 10_000 },
     )
+    const mobileBounds = await page.evaluate(() => {
+      const hero = document.querySelector('.hero-section')
+      const logo = document.querySelector('.logo-canvas-shell')
+      const statement = document.querySelector('.hero-statement')
+      if (!hero || !logo || !statement) {
+        throw new Error('Mobile hero bounds unavailable')
+      }
+
+      const heroBounds = hero.getBoundingClientRect()
+      const logoBounds = logo.getBoundingClientRect()
+      const statementBounds = statement.getBoundingClientRect()
+
+      return {
+        hero: {
+          left: heroBounds.left,
+          right: heroBounds.right,
+        },
+        innerWidth: window.innerWidth,
+        logo: {
+          left: logoBounds.left,
+          right: logoBounds.right,
+        },
+        scrollWidth: document.documentElement.scrollWidth,
+        statement: {
+          left: statementBounds.left,
+          right: statementBounds.right,
+        },
+      }
+    })
+    expect(mobileBounds.scrollWidth).toBeLessThanOrEqual(
+      mobileBounds.innerWidth,
+    )
+    expect(mobileBounds.logo.left).toBeGreaterThanOrEqual(
+      mobileBounds.hero.left - 1,
+    )
+    expect(mobileBounds.logo.right).toBeLessThanOrEqual(
+      mobileBounds.hero.right + 1,
+    )
+    expect(mobileBounds.statement.left).toBeGreaterThanOrEqual(
+      mobileBounds.hero.left - 1,
+    )
+    expect(mobileBounds.statement.right).toBeLessThanOrEqual(
+      mobileBounds.hero.right + 1,
+    )
     const rayBudget = await page.evaluate(() => {
       const scene = window.__EOTO_LOGO_SCENE__
       const rays = scene?.getObjectByName('logo-god-rays')
