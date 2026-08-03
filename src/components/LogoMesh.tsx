@@ -8,27 +8,32 @@ import {
 
 type LogoMeshProps = {
   glbScene: Object3D
+}
+
+type LogoHitboxProps = {
   logoLayout: LogoLayout
   onPointerDown: (event: ThreeEvent<PointerEvent>) => void
 }
 
-export function LogoMesh({
-  glbScene,
+export function LogoHitbox({
   logoLayout,
   onPointerDown,
-}: LogoMeshProps) {
+}: LogoHitboxProps) {
   return (
-    <group onPointerDown={onPointerDown}>
-      <mesh name="logo-hitbox">
-        <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
-        <meshBasicMaterial depthWrite={false} opacity={0} transparent />
-      </mesh>
-      <primitive
-        name="logo-glb-model"
-        object={glbScene}
-        rotation={LOGO_GLB_ROTATION}
-        scale={LOGO_GLB_SCALE}
-      />
-    </group>
+    <mesh name="logo-hitbox" onPointerDown={onPointerDown}>
+      <boxGeometry args={[logoLayout.width, logoLayout.height, LOGO_HITBOX_DEPTH]} />
+      <meshBasicMaterial depthWrite={false} opacity={0} transparent />
+    </mesh>
+  )
+}
+
+export function LogoMesh({ glbScene }: LogoMeshProps) {
+  return (
+    <primitive
+      name="logo-glb-model"
+      object={glbScene}
+      rotation={LOGO_GLB_ROTATION}
+      scale={LOGO_GLB_SCALE}
+    />
   )
 }

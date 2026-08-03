@@ -395,6 +395,74 @@ describe('logo flame visibility', () => {
     expect(sideQuaternion.y).toBeGreaterThan(sideQuaternion.x * 1.5)
   }, 35_000)
 
+  it('retargets spin direction on repeated clicks while rotating', async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+    await page.goto(url, { waitUntil: 'networkidle' })
+    const canvas = page.locator('canvas')
+    await canvas.waitFor({ state: 'visible', timeout: 10_000 })
+    const bounds = await canvas.boundingBox()
+    if (!bounds) {
+      throw new Error('Logo canvas bounds unavailable')
+    }
+
+    const readQuaternion = () =>
+      page.evaluate(() => {
+        const root =
+          window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-rotating-root')
+        if (!root) {
+          throw new Error('Logo rotating root unavailable')
+        }
+
+        return root.quaternion.toArray()
+      })
+    const relativeQuaternion = (
+      start: number[],
+      current: number[],
+    ) => {
+      const [ax, ay, az, aw] = current
+      const [bx, by, bz, bw] = [-start[0], -start[1], -start[2], start[3]]
+
+      return {
+        x: aw * bx + ax * bw + ay * bz - az * by,
+        y: aw * by - ax * bz + ay * bw + az * bx,
+        z: aw * bz + ax * by - ay * bx + az * bw,
+      }
+    }
+    const center = {
+      x: bounds.x + bounds.width * 0.5,
+      y: bounds.y + bounds.height * 0.5,
+    }
+
+    await page.mouse.click(center.x, bounds.y + bounds.height * 0.2)
+    await page.waitForTimeout(140)
+    const beforeRightClick = await readQuaternion()
+
+    await page.mouse.click(bounds.x + bounds.width * 0.8, center.y)
+    await page.waitForTimeout(120)
+    const afterRightClick = await readQuaternion()
+    const rightTurn = relativeQuaternion(beforeRightClick, afterRightClick)
+
+    await page.mouse.click(bounds.x + bounds.width * 0.2, center.y)
+    const beforeLeftTurn = await readQuaternion()
+    await page.waitForTimeout(120)
+    const afterLeftClick = await readQuaternion()
+    const leftTurn = relativeQuaternion(beforeLeftTurn, afterLeftClick)
+
+    const hitboxParent = await page.evaluate(
+      () =>
+        window.__EOTO_LOGO_SCENE__?.getObjectByName('logo-hitbox')?.parent
+          ?.name ?? '',
+    )
+
+    await page.close()
+
+    expect(hitboxParent).toBe('logo-hitbox-transform')
+    expect(Math.abs(rightTurn.y)).toBeGreaterThan(Math.abs(rightTurn.x) * 2)
+    expect(rightTurn.y).toBeGreaterThan(0.1)
+    expect(Math.abs(leftTurn.y)).toBeGreaterThan(Math.abs(leftTurn.x) * 2)
+    expect(leftTurn.y).toBeLessThan(-0.1)
+  }, 35_000)
+
   it('keeps click sparks detached from the rotating logo', async () => {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
     await page.goto(url, { waitUntil: 'networkidle' })

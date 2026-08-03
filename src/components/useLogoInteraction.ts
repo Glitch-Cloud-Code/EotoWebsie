@@ -67,7 +67,7 @@ export function useLogoInteraction({
     if (spinRequest !== processedSpinRequest.current) {
       processedSpinRequest.current = spinRequest
 
-      if (!reduceMotion && !spinState.current.active) {
+      if (!reduceMotion) {
         spinState.current.active = true
         spinState.current.axis.set(0, 1, 0)
         spinState.current.elapsed = 0
@@ -158,12 +158,9 @@ export function useLogoInteraction({
 
     addSparkBurst(event.point)
 
-    if (!spinState.current.active && root.current) {
-      const rootLocalClick = root.current.worldToLocal(
-        scratchVector.current.copy(event.point),
-      )
+    if (root.current) {
       const normalizedClick = normalizeLogoClickPoint(
-        { x: rootLocalClick.x, y: rootLocalClick.y },
+        { x: event.point.x, y: event.point.y },
         logoLayout.width * LOGO_MODEL_SCALE,
         logoLayout.height * LOGO_MODEL_SCALE,
       )

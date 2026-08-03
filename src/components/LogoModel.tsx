@@ -5,7 +5,7 @@ import logoMetadata from '../assets/logoMetadata.json'
 import { AttachedLogoEffects, DetachedLogoEffects } from './LogoEffects'
 import { prepareLogoScene } from './logoAsset'
 import type { LogoLayout } from './logoGeometry'
-import { LogoMesh } from './LogoMesh'
+import { LogoHitbox, LogoMesh } from './LogoMesh'
 import { createForgedMetalMaterial } from './logoMaterial'
 import type { LogoQuality } from './logoQuality'
 import type { PointerTarget } from './logoPointer'
@@ -65,13 +65,12 @@ export function LogoModel({
 
   return (
     <>
+      <group name="logo-hitbox-transform" scale={LOGO_MODEL_TRANSFORM_SCALE}>
+        <LogoHitbox logoLayout={logoLayout} onPointerDown={startSpin} />
+      </group>
       <group name="logo-rotating-root" ref={root}>
         <group name="logo-glb-transform" scale={LOGO_MODEL_TRANSFORM_SCALE}>
-          <LogoMesh
-            glbScene={glbScene}
-            logoLayout={logoLayout}
-            onPointerDown={startSpin}
-          />
+          <LogoMesh glbScene={glbScene} />
         </group>
         {!reduceMotion ? (
           <group name="logo-svg-effects-transform" scale={LOGO_EFFECTS_TRANSFORM_SCALE}>
