@@ -981,6 +981,70 @@ describe('logo flame visibility', () => {
     await page.close()
   }, 30_000)
 
+  it('keeps contact details and navigation usable on desktop and mobile', async () => {
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 900 },
+    })
+    await page.goto(`${url}#contact`, { waitUntil: 'domcontentloaded' })
+
+    const readContactLayout = () =>
+      page.evaluate(() => {
+        const contact = document.querySelector('#contact')
+        const email = document.querySelector<HTMLAnchorElement>('.contact-email')
+        const socialLinks = Array.from(
+          document.querySelectorAll<HTMLAnchorElement>('.contact-socials a'),
+        )
+        if (!contact || !email) {
+          throw new Error('Contact section unavailable')
+        }
+
+        const contactBounds = contact.getBoundingClientRect()
+        return {
+          contact: {
+            left: contactBounds.left,
+            right: contactBounds.right,
+          },
+          email: {
+            href: email.getAttribute('href'),
+            text: email.textContent?.trim(),
+          },
+          innerWidth: window.innerWidth,
+          navigationTargetsResolve: Array.from(
+            document.querySelectorAll<HTMLAnchorElement>('.site-navigation a'),
+          ).every((link) => Boolean(document.querySelector(link.hash))),
+          scrollWidth: document.documentElement.scrollWidth,
+          socialLinks: socialLinks.map((link) => ({
+            rel: link.rel,
+            target: link.target,
+          })),
+        }
+      })
+
+    const desktop = await readContactLayout()
+    expect(desktop.email).toEqual({
+      href: 'mailto:echoesoftheorionband@gmail.com',
+      text: 'echoesoftheorionband@gmail.com',
+    })
+    expect(desktop.navigationTargetsResolve).toBe(true)
+    expect(desktop.socialLinks).toHaveLength(4)
+    expect(
+      desktop.socialLinks.every(
+        ({ rel, target }) =>
+          rel.includes('noreferrer') &&
+          rel.includes('noopener') &&
+          target === '_blank',
+      ),
+    ).toBe(true)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    const mobile = await readContactLayout()
+    expect(mobile.scrollWidth).toBeLessThanOrEqual(mobile.innerWidth)
+    expect(mobile.contact.left).toBeGreaterThanOrEqual(15)
+    expect(mobile.contact.right).toBeLessThanOrEqual(mobile.innerWidth - 15)
+
+    await page.close()
+  }, 30_000)
+
   it('opens and closes the mobile navigation menu', async () => {
     const page = await browser.newPage({
       viewport: { width: 390, height: 844 },

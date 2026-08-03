@@ -50,7 +50,13 @@ describe('factual site content', () => {
   it('uses the corrected contact email everywhere', () => {
     expect(siteContent.contact.email).toBe('echoesoftheorionband@gmail.com')
     expect(siteContent.booking.email).toBe(siteContent.contact.email)
-    expect(siteContent.footer.note).toBe(siteContent.contact.email)
+    expect(siteContent.booking.mailtoUrl).toContain(siteContent.contact.email)
+  })
+
+  it('keeps contact and platform data in canonical fields', () => {
+    expect(siteContent).not.toHaveProperty('links')
+    expect(siteContent).not.toHaveProperty('footer')
+    expect(siteContent.platforms).toHaveLength(4)
   })
 
   it('builds an encoded booking email action', () => {

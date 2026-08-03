@@ -46,7 +46,6 @@ export type PlatformKind =
   | 'spotify'
   | 'instagram'
   | 'facebook'
-  | 'email'
 
 export type PlatformLink = {
   kind: PlatformKind
@@ -112,17 +111,6 @@ export type SiteContent = {
   contact: {
     email: string
     statement: string
-  }
-
-  // Temporary projections keep lower page sections working while they migrate.
-  links: {
-    label: string
-    url: string
-  }[]
-  footer: {
-    kicker: string
-    note: string
-    title: string
   }
 }
 
@@ -336,11 +324,5 @@ export const siteContent: SiteContent = {
   contact: {
     email,
     statement: 'Live invitations, collaboration, and general enquiries.',
-  },
-  links: platforms.map(({ label, url }) => ({ label, url })),
-  footer: {
-    kicker: 'Contact',
-    note: email,
-    title: 'Live invitations, collaboration, and general enquiries.',
   },
 }
