@@ -28,31 +28,72 @@ export type ShowDateParts = {
   label: string
 }
 
-export type VideoLink = {
-  kind: string
-  title: string
+export type PlatformKind =
+  | 'youtube'
+  | 'spotify'
+  | 'instagram'
+  | 'facebook'
+  | 'email'
+
+export type PlatformLink = {
+  kind: PlatformKind
+  label: string
   url: string
 }
 
 export type PhotoAsset = {
   alt: string
-  caption: string
+  caption?: string
   priority?: boolean
   src: string
 }
 
+export type Booking = {
+  email: string
+  invitation: string
+  mailtoUrl: string
+  subject: string
+}
+
+export type Release = {
+  artwork: PhotoAsset
+  spotifyUrl: string
+  story: string[]
+  title: string
+  version: string
+  year: number
+  youtubeUrl: string
+}
+
+export type Member = {
+  alias?: string
+  name: string
+  roles: string[]
+}
+
 export type SiteContent = {
-  about: {
-    kicker: string
-    paragraphs: string[]
-    title: string
+  identity: {
+    currentWork: string
+    formed: string
+    genre: string
+    location: string
+    name: string
+    purpose: string
+    releasedSongCount: number
   }
-  footer: {
-    kicker: string
-    note: string
-    title: string
-  }
+  shows: Show[]
+  booking: Booking
+  platforms: PlatformLink[]
+  featuredRelease: Release
+  story: string[]
+  members: Member[]
   gallery: PhotoAsset[]
+  contact: {
+    email: string
+    statement: string
+  }
+
+  // Temporary projections keep the current page working while sections migrate.
   hero: {
     eyebrow: string
     intro: string
@@ -60,10 +101,6 @@ export type SiteContent = {
     shows: Show[]
     title: string
   }
-  links: {
-    label: string
-    url: string
-  }[]
   videos: {
     featured: {
       description: string
@@ -73,11 +110,118 @@ export type SiteContent = {
       title: string
       url: string
     }
-    links: VideoLink[]
+    links: {
+      kind: string
+      title: string
+      url: string
+    }[]
+  }
+  about: {
+    kicker: string
+    paragraphs: string[]
+    title: string
+  }
+  links: {
+    label: string
+    url: string
+  }[]
+  footer: {
+    kicker: string
+    note: string
+    title: string
   }
 }
 
 const base = import.meta.env.BASE_URL
+const email = 'echoesoftheorionband@gmail.com'
+const bookingSubject = 'Live invitation for Echoes Of The Orion'
+
+const shows: Show[] = []
+
+const platforms: PlatformLink[] = [
+  {
+    kind: 'youtube',
+    label: 'YouTube',
+    url: 'https://youtube.com/@echoesoftheorion?si=PHvCrsPm1_OZV35t',
+  },
+  {
+    kind: 'spotify',
+    label: 'Spotify',
+    url: 'https://open.spotify.com/artist/17SgjLYI26IGVmkxAAr9cS',
+  },
+  {
+    kind: 'instagram',
+    label: 'Instagram',
+    url: 'https://www.instagram.com/echoesoftheorion/',
+  },
+  {
+    kind: 'facebook',
+    label: 'Facebook',
+    url: 'https://www.facebook.com/profile.php?id=61575317535170',
+  },
+]
+
+const gallery: PhotoAsset[] = [
+  {
+    alt: 'Echoes Of The Orion performing together on a dark club stage',
+    priority: true,
+    src: `${base}assets/photos/band-live-wide.jpg`,
+  },
+  {
+    alt: 'Echoes Of The Orion vocalist singing under red stage light',
+    src: `${base}assets/photos/band-vocalist.jpg`,
+  },
+  {
+    alt: 'Echoes Of The Orion bassist playing a white bass on stage',
+    src: `${base}assets/photos/band-bassist.jpg`,
+  },
+]
+
+const story = [
+  'Echoes Of The Orion formed in Riga in March 2023 to learn together, create original music, and play it on stage.',
+  'The band plays Melodic Alt Metal and has released three songs. Everyday is its most polished release so far.',
+  'The band is working on a full album release and looking for new opportunities to perform live.',
+]
+
+const featuredRelease: Release = {
+  artwork: {
+    alt: 'Everyday single artwork showing a falling figure in blue and pink light',
+    src: `${base}assets/gallery/everyday-full.png`,
+  },
+  spotifyUrl: 'https://open.spotify.com/track/3vx6sgOJQL4aalFRwB6Mt7',
+  story: [
+    'The band won a vocal competition with Everyday at ANTEX Recording Studio.',
+    'The prize gave the band an opportunity to record a song there, which the band used to record and release Everyday.',
+  ],
+  title: 'Everyday',
+  version: 'Radio Edit',
+  year: 2025,
+  youtubeUrl: 'https://www.youtube.com/watch?v=wwzwPSeAk7I',
+}
+
+const members: Member[] = [
+  {
+    name: 'Alexander Gutarov',
+    roles: ['Composer', 'Lead/Rhythm guitar'],
+  },
+  {
+    alias: 'Glitch Cloud',
+    name: 'Sergey Smirnov',
+    roles: ['Vocal', 'Lyrics'],
+  },
+  {
+    name: 'Dmitry Anokhin',
+    roles: ['Bass'],
+  },
+  {
+    name: 'Ilya Rogov',
+    roles: ['Drums'],
+  },
+  {
+    name: 'Igor Maestro',
+    roles: ['2nd Guitar'],
+  },
+]
 
 const showDayFormatter = new Intl.DateTimeFormat('en', {
   day: '2-digit',
@@ -133,76 +277,63 @@ export function formatShowDateParts(show: Show): ShowDateParts {
 }
 
 export const siteContent: SiteContent = {
+  identity: {
+    currentWork: 'Full album release',
+    formed: 'March 2023',
+    genre: 'Melodic Alt Metal',
+    location: 'Riga, Latvia',
+    name: 'Echoes Of The Orion',
+    purpose: 'Learn together, create original music, and play it on stage.',
+    releasedSongCount: 3,
+  },
+  shows,
+  booking: {
+    email,
+    invitation: 'Want us on your stage? Invite us to play.',
+    mailtoUrl: `mailto:${email}?subject=${encodeURIComponent(bookingSubject)}`,
+    subject: bookingSubject,
+  },
+  platforms,
+  featuredRelease,
+  story,
+  members,
+  gallery,
+  contact: {
+    email,
+    statement: 'Live invitations, collaboration, and general enquiries.',
+  },
   hero: {
-    eyebrow: 'Melodic metal from Latvia',
+    eyebrow: 'Melodic Alt Metal · Riga, Latvia',
+    intro: 'Working on a full album release and looking for live opportunities.',
+    shows,
     title: 'Echoes Of The Orion',
-    quote: 'Never being bored has a terrible price',
-    intro:
-      'Heavy melody, sharp edges, and open space. Follow the next live date and latest transmission.',
-    shows: [],
   },
   videos: {
     featured: {
-      kicker: 'Featured watch',
-      title: 'Official channel',
-      description:
-        'Official videos, live cuts, and new releases from the band.',
-      image: `${base}assets/photos/band-vocalist-wide.jpg`,
-      imageAlt: 'Echoes Of The Orion vocalist performing under red and blue light',
-      url: 'https://youtube.com/@echoesoftheorion?si=PHvCrsPm1_OZV35t',
+      description: featuredRelease.story.join(' '),
+      image: featuredRelease.artwork.src,
+      imageAlt: featuredRelease.artwork.alt,
+      kicker: 'Featured release · 2025',
+      title: 'Everyday (Radio Edit)',
+      url: featuredRelease.youtubeUrl,
     },
-    links: [
-      {
-        kind: 'YouTube',
-        title: 'Echoes Of The Orion',
-        url: 'https://youtube.com/@echoesoftheorion?si=PHvCrsPm1_OZV35t',
-      },
-      {
-        kind: 'Spotify',
-        title: 'Stream the singles',
-        url: 'https://open.spotify.com/artist/17SgjLYI26IGVmkxAAr9cS',
-      },
-    ],
+    links: platforms
+      .filter(({ kind }) => kind === 'youtube' || kind === 'spotify')
+      .map(({ label, url }) => ({
+        kind: label,
+        title: label === 'YouTube' ? 'Watch the band' : 'Listen to the band',
+        url,
+      })),
   },
   about: {
-    kicker: 'Profile',
-    title: 'Melody with pressure behind it.',
-    paragraphs: [
-      'Echoes Of The Orion leans into contrast: weight and lift, sharp edges and open space, motion and restraint. The sound stays rooted in metal while leaving room for melody to steer the emotional line.',
-      'Songs move between tightly wound riffs, open melodic passages, and vocal lines built to carry both tension and release.',
-    ],
+    kicker: 'Story',
+    paragraphs: story,
+    title: 'From Riga to the stage.',
   },
-  gallery: [
-    {
-      alt: 'Echoes Of The Orion performing together on a dark club stage',
-      caption: 'On stage',
-      priority: true,
-      src: `${base}assets/photos/band-live-wide.jpg`,
-    },
-    {
-      alt: 'Echoes Of The Orion vocalist singing under red stage light',
-      caption: 'At the front',
-      src: `${base}assets/photos/band-vocalist.jpg`,
-    },
-    {
-      alt: 'Echoes Of The Orion bassist playing a white bass on stage',
-      caption: 'Low-end pressure',
-      src: `${base}assets/photos/band-bassist.jpg`,
-    },
-  ],
-  links: [
-    {
-      label: 'YouTube',
-      url: 'https://youtube.com/@echoesoftheorion?si=PHvCrsPm1_OZV35t',
-    },
-    {
-      label: 'Spotify',
-      url: 'https://open.spotify.com/artist/17SgjLYI26IGVmkxAAr9cS',
-    },
-  ],
+  links: platforms.map(({ label, url }) => ({ label, url })),
   footer: {
-    kicker: 'Connect',
-    note: 'Releases, live cuts, and show announcements land on the official channels.',
-    title: 'Follow the next signal.',
+    kicker: 'Contact',
+    note: email,
+    title: 'Live invitations, collaboration, and general enquiries.',
   },
 }
