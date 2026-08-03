@@ -151,7 +151,7 @@ describe('logo flame visibility', () => {
       throw new Error('Vite dev server did not expose a local URL')
     }
 
-    url = new URL('/EotoWebsie/', localUrl).toString()
+    url = new URL('/', localUrl).toString()
     browser = await chromium.launch({ headless: true })
   }, 30_000)
 
