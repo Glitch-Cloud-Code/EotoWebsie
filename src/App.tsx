@@ -11,12 +11,13 @@ import { siteContent } from './content/siteContent'
 import { BandStory } from './components/BandStory'
 import { FeaturedRelease } from './components/FeaturedRelease'
 import { HeroSection } from './components/HeroSection'
+import { PhotoGallery } from './components/PhotoGallery'
 
 const navigation = [
   { href: '#shows', label: 'Shows' },
   { href: '#everyday', label: 'Everyday' },
   { href: '#story', label: 'Story' },
-  { href: '#visuals', label: 'Photos' },
+  { href: '#photos', label: 'Photos' },
   { href: '#connect', label: 'Contact' },
 ]
 
@@ -87,24 +88,7 @@ function App() {
           story={siteContent.story}
         />
 
-        <section className="content-band gallery-section" id="visuals">
-          <div className="section-heading">
-            <span className="section-index">03</span>
-            <h2>Visuals</h2>
-          </div>
-
-          <div className="gallery-grid">
-            {gallery.map((photo, index) => (
-              <figure
-                className={`gallery-item gallery-item-${index + 1}`}
-                key={photo.src}
-              >
-                <img alt={photo.alt} loading={photo.priority ? 'eager' : 'lazy'} src={photo.src} />
-                <figcaption>{photo.caption}</figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
+        <PhotoGallery photos={gallery} />
 
         <footer className="site-footer" id="connect">
           <div className="footer-copy">

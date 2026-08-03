@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { describe, expect, it } from 'vitest'
 import {
   createIsoDate,
@@ -116,6 +116,46 @@ describe('factual site content', () => {
     expect(asset.length).toBeLessThan(500_000)
     expect(asset.subarray(0, 4).toString('ascii')).toBe('RIFF')
     expect(asset.subarray(8, 12).toString('ascii')).toBe('WEBP')
+  })
+
+  it('defines six distinct responsive gallery photos', () => {
+    expect(siteContent.gallery).toHaveLength(6)
+    expect(new Set(siteContent.gallery.map(({ id }) => id)).size).toBe(6)
+    expect(new Set(siteContent.gallery.map(({ src }) => src)).size).toBe(6)
+    expect(
+      siteContent.gallery.filter(({ layout }) => layout === 'wide'),
+    ).toHaveLength(2)
+    expect(
+      siteContent.gallery.filter(({ layout }) => layout === 'portrait'),
+    ).toHaveLength(4)
+    expect(siteContent.gallery.every(({ caption }) => caption === undefined)).toBe(
+      true,
+    )
+    expect(
+      siteContent.gallery.every(
+        ({ alt, height, srcSet, width }) =>
+          alt.length > 20 && height > 0 && srcSet.includes('w, ') && width > 0,
+      ),
+    ).toBe(true)
+  })
+
+  it('keeps responsive gallery WebP assets within the transfer budget', async () => {
+    const filenames = (await readdir('src/assets/photos')).filter((filename) =>
+      filename.endsWith('.webp'),
+    )
+    const assets = await Promise.all(
+      filenames.map((filename) => readFile(`src/assets/photos/${filename}`)),
+    )
+
+    expect(filenames).toHaveLength(12)
+    expect(assets.every((asset) => asset.length < 220_000)).toBe(true)
+    expect(
+      assets.every(
+        (asset) =>
+          asset.subarray(0, 4).toString('ascii') === 'RIFF' &&
+          asset.subarray(8, 12).toString('ascii') === 'WEBP',
+      ),
+    ).toBe(true)
   })
 
   it('lists each supplied member once with the supplied roles', () => {

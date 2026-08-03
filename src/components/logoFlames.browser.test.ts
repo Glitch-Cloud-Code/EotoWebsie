@@ -897,6 +897,90 @@ describe('logo flame visibility', () => {
     await page.close()
   }, 30_000)
 
+  it('renders six responsive gallery photos without clipping the page', async () => {
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 900 },
+    })
+    await page.goto(`${url}#photos`, { waitUntil: 'networkidle' })
+    await page.waitForFunction(
+      () => {
+        const images = Array.from(
+          document.querySelectorAll<HTMLImageElement>('.photo-gallery img'),
+        )
+        return images.length === 6 && images.every((image) => image.complete)
+      },
+      undefined,
+      { timeout: 10_000 },
+    )
+
+    const readGalleryLayout = () =>
+      page.evaluate(() => {
+        const section = document.querySelector('.photo-gallery')
+        const images = Array.from(
+          document.querySelectorAll<HTMLImageElement>('.photo-gallery img'),
+        )
+        const items = Array.from(
+          document.querySelectorAll('.photo-gallery-item'),
+        )
+        if (!section || images.length !== 6 || items.length !== 6) {
+          throw new Error('Photo gallery layout unavailable')
+        }
+
+        const sectionBounds = section.getBoundingClientRect()
+        return {
+          captions: document.querySelectorAll('.photo-gallery figcaption').length,
+          images: images.map((image) => ({
+            currentSrc: image.currentSrc,
+            loading: image.loading,
+            naturalWidth: image.naturalWidth,
+            objectFit: window.getComputedStyle(image).objectFit,
+          })),
+          innerWidth: window.innerWidth,
+          items: items.map((item) => {
+            const bounds = item.getBoundingClientRect()
+            return {
+              className: item.className,
+              height: bounds.height,
+              width: bounds.width,
+            }
+          }),
+          scrollWidth: document.documentElement.scrollWidth,
+          section: {
+            left: sectionBounds.left,
+            right: sectionBounds.right,
+          },
+        }
+      })
+
+    const desktop = await readGalleryLayout()
+    expect(desktop.captions).toBe(0)
+    expect(
+      desktop.images.every(
+        ({ currentSrc, loading, naturalWidth, objectFit }) =>
+          currentSrc.includes('.webp') &&
+          loading === 'lazy' &&
+          naturalWidth > 0 &&
+          objectFit === 'cover',
+      ),
+    ).toBe(true)
+    expect(
+      desktop.items.filter(({ className }) => className.includes('--wide')),
+    ).toHaveLength(2)
+    expect(
+      desktop.items.filter(({ className }) => className.includes('--portrait')),
+    ).toHaveLength(4)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    const mobile = await readGalleryLayout()
+    expect(mobile.scrollWidth).toBeLessThanOrEqual(mobile.innerWidth)
+    expect(mobile.section.left).toBeGreaterThanOrEqual(15)
+    expect(mobile.section.right).toBeLessThanOrEqual(mobile.innerWidth - 15)
+    expect(mobile.items[0].width / mobile.items[0].height).toBeCloseTo(1.6, 1)
+    expect(mobile.items[1].width / mobile.items[1].height).toBeCloseTo(0.8, 1)
+
+    await page.close()
+  }, 30_000)
+
   it('opens and closes the mobile navigation menu', async () => {
     const page = await browser.newPage({
       viewport: { width: 390, height: 844 },

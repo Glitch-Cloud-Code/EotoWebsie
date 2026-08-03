@@ -1,3 +1,16 @@
+import bandLiveWideLarge from '../assets/photos/band-live-wide-large.webp'
+import bandLiveWideSmall from '../assets/photos/band-live-wide-small.webp'
+import bassistLarge from '../assets/photos/bassist-large.webp'
+import bassistSmall from '../assets/photos/bassist-small.webp'
+import drummerLarge from '../assets/photos/drummer-large.webp'
+import drummerSmall from '../assets/photos/drummer-small.webp'
+import guitaristDarkLarge from '../assets/photos/guitarist-dark-large.webp'
+import guitaristDarkSmall from '../assets/photos/guitarist-dark-small.webp'
+import guitaristLongHairLarge from '../assets/photos/guitarist-long-hair-large.webp'
+import guitaristLongHairSmall from '../assets/photos/guitarist-long-hair-small.webp'
+import vocalistLarge from '../assets/photos/vocalist-large.webp'
+import vocalistSmall from '../assets/photos/vocalist-small.webp'
+
 declare const isoDateBrand: unique symbol
 
 export type IsoDate = string & {
@@ -48,6 +61,14 @@ export type PhotoAsset = {
   src: string
 }
 
+export type GalleryPhotoAsset = PhotoAsset & {
+  height: number
+  id: string
+  layout: 'portrait' | 'wide'
+  srcSet: string
+  width: number
+}
+
 export type Booking = {
   email: string
   invitation: string
@@ -87,7 +108,7 @@ export type SiteContent = {
   featuredRelease: Release
   story: string[]
   members: Member[]
-  gallery: PhotoAsset[]
+  gallery: GalleryPhotoAsset[]
   contact: {
     email: string
     statement: string
@@ -134,19 +155,60 @@ const platforms: PlatformLink[] = [
   },
 ]
 
-const gallery: PhotoAsset[] = [
+const gallery: GalleryPhotoAsset[] = [
   {
-    alt: 'Echoes Of The Orion performing together on a dark club stage',
-    priority: true,
-    src: `${base}assets/photos/band-live-wide.jpg`,
+    alt: 'Five musicians performing together under warm amber stage lights',
+    height: 700,
+    id: 'full-band',
+    layout: 'wide',
+    src: bandLiveWideLarge,
+    srcSet: `${bandLiveWideSmall} 960w, ${bandLiveWideLarge} 1600w`,
+    width: 1600,
   },
   {
-    alt: 'Echoes Of The Orion vocalist singing under red stage light',
-    src: `${base}assets/photos/band-vocalist.jpg`,
+    alt: 'Vocalist singing into a handheld microphone under red and blue lights',
+    height: 1000,
+    id: 'vocalist',
+    layout: 'portrait',
+    src: vocalistLarge,
+    srcSet: `${vocalistSmall} 480w, ${vocalistLarge} 800w`,
+    width: 800,
   },
   {
-    alt: 'Echoes Of The Orion bassist playing a white bass on stage',
-    src: `${base}assets/photos/band-bassist.jpg`,
+    alt: 'Bassist playing a white five-string bass on stage',
+    height: 1000,
+    id: 'bassist',
+    layout: 'portrait',
+    src: bassistLarge,
+    srcSet: `${bassistSmall} 480w, ${bassistLarge} 800w`,
+    width: 800,
+  },
+  {
+    alt: 'Dark-haired guitarist playing a black electric guitar during a live performance',
+    height: 1000,
+    id: 'guitarist-dark',
+    layout: 'portrait',
+    src: guitaristDarkLarge,
+    srcSet: `${guitaristDarkSmall} 480w, ${guitaristDarkLarge} 800w`,
+    width: 800,
+  },
+  {
+    alt: 'Long-haired guitarist playing under red stage lighting',
+    height: 1000,
+    id: 'guitarist-long-hair',
+    layout: 'portrait',
+    src: guitaristLongHairLarge,
+    srcSet: `${guitaristLongHairSmall} 480w, ${guitaristLongHairLarge} 800w`,
+    width: 800,
+  },
+  {
+    alt: 'Drummer playing behind cymbals in bright blue-white backlighting',
+    height: 810,
+    id: 'drummer',
+    layout: 'wide',
+    src: drummerLarge,
+    srcSet: `${drummerSmall} 900w, ${drummerLarge} 1440w`,
+    width: 1440,
   },
 ]
 
