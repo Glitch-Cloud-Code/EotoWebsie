@@ -25,7 +25,7 @@ npm run build
 
 Most editable content lives in:
 
-- `C:\Users\damnr\Documents\New project\EotoWebsie\src\content\siteContent.ts`
+- `src/content/siteContent.ts`
 
 That file controls:
 
@@ -39,7 +39,8 @@ That file controls:
 
 Primary site assets live in:
 
-- `C:\Users\damnr\Documents\New project\EotoWebsie\public\assets\logo`
-- `C:\Users\damnr\Documents\New project\EotoWebsie\public\assets\gallery`
+- `public/assets/logo`
+- `public/assets/releases`
+- `src/assets/photos`
 
 The supplied OBJ logo was converted to `logo.glb` and kept in the repo, while the live hero experience renders a browser-stable 3D treatment from the provided vector logo asset.
