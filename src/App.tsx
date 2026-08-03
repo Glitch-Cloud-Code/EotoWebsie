@@ -8,13 +8,14 @@ import {
 } from 'lucide-react'
 import './App.css'
 import { siteContent } from './content/siteContent'
+import { BandStory } from './components/BandStory'
 import { FeaturedRelease } from './components/FeaturedRelease'
 import { HeroSection } from './components/HeroSection'
 
 const navigation = [
   { href: '#shows', label: 'Shows' },
   { href: '#everyday', label: 'Everyday' },
-  { href: '#band', label: 'Story' },
+  { href: '#story', label: 'Story' },
   { href: '#visuals', label: 'Photos' },
   { href: '#connect', label: 'Contact' },
 ]
@@ -28,7 +29,7 @@ function SocialIcon({ kind }: { kind: string }) {
 }
 
 function App() {
-  const { about, gallery, links, footer } = siteContent
+  const { gallery, links, footer } = siteContent
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
 
@@ -80,25 +81,11 @@ function App() {
 
         <FeaturedRelease release={siteContent.featuredRelease} />
 
-        <section className="content-band band-section" id="band">
-          <div className="section-heading">
-            <span className="section-index">02</span>
-            <h2>Band</h2>
-          </div>
-
-          <div className="about-layout">
-            <div className="about-title">
-              <p className="section-kicker">{about.kicker}</p>
-              <h3>{about.title}</h3>
-            </div>
-
-            <div className="about-copy">
-              {about.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
-          </div>
-        </section>
+        <BandStory
+          identity={siteContent.identity}
+          members={siteContent.members}
+          story={siteContent.story}
+        />
 
         <section className="content-band gallery-section" id="visuals">
           <div className="section-heading">

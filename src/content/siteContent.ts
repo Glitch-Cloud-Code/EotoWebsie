@@ -94,11 +94,6 @@ export type SiteContent = {
   }
 
   // Temporary projections keep lower page sections working while they migrate.
-  about: {
-    kicker: string
-    paragraphs: string[]
-    title: string
-  }
   links: {
     label: string
     url: string
@@ -279,11 +274,6 @@ export const siteContent: SiteContent = {
   contact: {
     email,
     statement: 'Live invitations, collaboration, and general enquiries.',
-  },
-  about: {
-    kicker: 'Story',
-    paragraphs: story,
-    title: 'From Riga to the stage.',
   },
   links: platforms.map(({ label, url }) => ({ label, url })),
   footer: {
