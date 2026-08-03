@@ -828,6 +828,75 @@ describe('logo flame visibility', () => {
     await page.close()
   }, 45_000)
 
+  it('renders the optimized Everyday artwork uncropped on desktop and mobile', async () => {
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 900 },
+    })
+    await page.goto(`${url}#everyday`, { waitUntil: 'networkidle' })
+    await page.waitForFunction(
+      () => {
+        const image = document.querySelector<HTMLImageElement>(
+          '.featured-release-artwork img',
+        )
+        return Boolean(image?.complete && image.naturalWidth > 0)
+      },
+      undefined,
+      { timeout: 10_000 },
+    )
+
+    const readReleaseLayout = () =>
+      page.evaluate(() => {
+        const image = document.querySelector<HTMLImageElement>(
+          '.featured-release-artwork img',
+        )
+        const section = document.querySelector('.featured-release')
+        const actions = Array.from(
+          document.querySelectorAll('.featured-release-actions a'),
+        )
+        if (!image || !section || actions.length !== 2) {
+          throw new Error('Featured release layout unavailable')
+        }
+
+        const imageBounds = image.getBoundingClientRect()
+        const sectionBounds = section.getBoundingClientRect()
+        return {
+          actionHeights: actions.map(
+            (action) => action.getBoundingClientRect().height,
+          ),
+          image: {
+            height: imageBounds.height,
+            naturalHeight: image.naturalHeight,
+            naturalWidth: image.naturalWidth,
+            objectFit: window.getComputedStyle(image).objectFit,
+            width: imageBounds.width,
+          },
+          innerWidth: window.innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          section: {
+            left: sectionBounds.left,
+            right: sectionBounds.right,
+          },
+        }
+      })
+
+    const desktop = await readReleaseLayout()
+    expect(desktop.image.naturalWidth).toBe(1600)
+    expect(desktop.image.naturalHeight).toBe(1600)
+    expect(desktop.image.objectFit).toBe('contain')
+    expect(desktop.image.width).toBeCloseTo(desktop.image.height, 0)
+    expect(Math.min(...desktop.actionHeights)).toBeGreaterThanOrEqual(44)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    const mobile = await readReleaseLayout()
+    expect(mobile.scrollWidth).toBeLessThanOrEqual(mobile.innerWidth)
+    expect(mobile.image.width).toBeCloseTo(mobile.image.height, 0)
+    expect(mobile.section.left).toBeGreaterThanOrEqual(15)
+    expect(mobile.section.right).toBeLessThanOrEqual(mobile.innerWidth - 15)
+    expect(Math.min(...mobile.actionHeights)).toBeGreaterThanOrEqual(44)
+
+    await page.close()
+  }, 30_000)
+
   it('opens and closes the mobile navigation menu', async () => {
     const page = await browser.newPage({
       viewport: { width: 390, height: 844 },

@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { describe, expect, it } from 'vitest'
 import {
   createIsoDate,
@@ -97,7 +98,7 @@ describe('factual site content', () => {
     })
     expect(siteContent.featuredRelease).toMatchObject({
       artwork: {
-        src: `${import.meta.env.BASE_URL}assets/gallery/everyday-full.png`,
+        src: `${import.meta.env.BASE_URL}assets/releases/everyday.webp`,
       },
       title: 'Everyday',
       version: 'Radio Edit',
@@ -106,6 +107,15 @@ describe('factual site content', () => {
     expect(siteContent.featuredRelease.story.join(' ')).toContain(
       'The band won a vocal competition with Everyday at ANTEX Recording Studio.',
     )
+  })
+
+  it('uses the optimized Everyday WebP runtime asset', async () => {
+    const asset = await readFile('public/assets/releases/everyday.webp')
+
+    expect(asset.length).toBeGreaterThan(100_000)
+    expect(asset.length).toBeLessThan(500_000)
+    expect(asset.subarray(0, 4).toString('ascii')).toBe('RIFF')
+    expect(asset.subarray(8, 12).toString('ascii')).toBe('WEBP')
   })
 
   it('lists each supplied member once with the supplied roles', () => {

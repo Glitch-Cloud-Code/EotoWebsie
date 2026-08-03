@@ -94,21 +94,6 @@ export type SiteContent = {
   }
 
   // Temporary projections keep lower page sections working while they migrate.
-  videos: {
-    featured: {
-      description: string
-      image: string
-      imageAlt: string
-      kicker: string
-      title: string
-      url: string
-    }
-    links: {
-      kind: string
-      title: string
-      url: string
-    }[]
-  }
   about: {
     kicker: string
     paragraphs: string[]
@@ -179,7 +164,7 @@ const story = [
 const featuredRelease: Release = {
   artwork: {
     alt: 'Everyday single artwork showing a falling figure in blue and pink light',
-    src: `${base}assets/gallery/everyday-full.png`,
+    src: `${base}assets/releases/everyday.webp`,
   },
   spotifyUrl: 'https://open.spotify.com/track/3vx6sgOJQL4aalFRwB6Mt7',
   story: [
@@ -294,23 +279,6 @@ export const siteContent: SiteContent = {
   contact: {
     email,
     statement: 'Live invitations, collaboration, and general enquiries.',
-  },
-  videos: {
-    featured: {
-      description: featuredRelease.story.join(' '),
-      image: featuredRelease.artwork.src,
-      imageAlt: featuredRelease.artwork.alt,
-      kicker: 'Featured release · 2025',
-      title: 'Everyday (Radio Edit)',
-      url: featuredRelease.youtubeUrl,
-    },
-    links: platforms
-      .filter(({ kind }) => kind === 'youtube' || kind === 'spotify')
-      .map(({ label, url }) => ({
-        kind: label,
-        title: label === 'YouTube' ? 'Watch the band' : 'Listen to the band',
-        url,
-      })),
   },
   about: {
     kicker: 'Story',
