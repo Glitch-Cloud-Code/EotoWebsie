@@ -1,4 +1,3 @@
-import { GodRays } from './GodRays'
 import { LogoHalo } from './LogoHalo'
 import type { LogoLayout } from './logoGeometry'
 import {
@@ -38,7 +37,6 @@ export function AttachedLogoEffects({
 type DetachedLogoEffectsProps = {
   logoLayout: LogoLayout
   onSparkComplete: (id: number) => void
-  quality: LogoQuality
   reduceMotion: boolean
   sparkBursts: LogoSparkBurst[]
 }
@@ -46,19 +44,12 @@ type DetachedLogoEffectsProps = {
 export function DetachedLogoEffects({
   logoLayout,
   onSparkComplete,
-  quality,
   reduceMotion,
   sparkBursts,
 }: DetachedLogoEffectsProps) {
   return (
     <>
       <LogoHalo height={logoLayout.height} width={logoLayout.width} />
-      <GodRays
-        height={logoLayout.height}
-        quality={quality}
-        reduceMotion={reduceMotion}
-        width={logoLayout.width}
-      />
       {!reduceMotion ? sparkBursts.map((burst) => (
         <group
           key={burst.id}
