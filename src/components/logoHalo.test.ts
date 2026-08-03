@@ -5,17 +5,13 @@ import {
   LOGO_HALO_RENDER_ORDER,
   LOGO_HALO_Z,
 } from './logoHaloMaterial'
-import {
-  LOGO_GOD_RAY_RENDER_ORDER,
-  LOGO_GOD_RAY_SOURCE_Z_MIN,
-} from './logoGodRays'
 
 describe('logo halo', () => {
-  it('stays subtle and behind every atmospheric layer', () => {
+  it('stays subtle and behind the logo', () => {
     expect(LOGO_HALO_ALPHA).toBeGreaterThanOrEqual(0.1)
     expect(LOGO_HALO_ALPHA).toBeLessThanOrEqual(0.16)
-    expect(LOGO_HALO_Z).toBeLessThan(LOGO_GOD_RAY_SOURCE_Z_MIN)
-    expect(LOGO_HALO_RENDER_ORDER).toBeLessThan(LOGO_GOD_RAY_RENDER_ORDER)
+    expect(LOGO_HALO_Z).toBeLessThan(0)
+    expect(LOGO_HALO_RENDER_ORDER).toBe(0)
   })
 
   it('uses a transparent additive material without writing depth', () => {

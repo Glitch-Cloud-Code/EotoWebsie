@@ -1,5 +1,5 @@
 import { Suspense, useLayoutEffect, useRef, type RefObject } from 'react'
-import { ContactShadows, Html } from '@react-three/drei'
+import { Html } from '@react-three/drei'
 import { Object3D, SpotLight as ThreeSpotLight } from 'three'
 import {
   type SpotLogoLight,
@@ -108,7 +108,6 @@ export function LogoScene({
           spinRequest={spinRequest}
         />
       </Suspense>
-      <ContactShadows blur={2.8} color="#26090c" opacity={0.28} position={[0, -58, 0]} />
     </>
   )
 }

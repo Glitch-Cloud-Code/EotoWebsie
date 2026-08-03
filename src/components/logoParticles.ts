@@ -13,6 +13,8 @@ export type ShapeSampler = {
 }
 
 export const PARTICLE_DEPTH_CLAMP_Z = -18
+export const PARTICLE_FLAME_CENTER_EXCLUSION_HALF_WIDTH = 110
+export const PARTICLE_FLAME_SOURCE_Y_OFFSET = 16
 
 export const LOGO_RENDER_ORDER = {
   particles: 5,
@@ -28,14 +30,14 @@ export const LOGO_WORDMARK_SHAPE_INDICES = Array.from(
 
 export const PARTICLE_KIND_SETTINGS = {
   flame: {
-    alphaMultiplier: 0.48,
-    count: 210,
+    alphaMultiplier: 0.34,
+    count: 180,
     depthTest: true,
     driftX: 18,
-    driftY: [220, 400],
+    driftY: [160, 280],
     driftZ: 70,
     fadeOutStart: 0.94,
-    scale: [56, 110],
+    scale: [44, 82],
     startZ: [-70, -24],
   },
   smoke: {
@@ -134,17 +136,29 @@ export function createParticleAttributes(
   }
 
   const settings = PARTICLE_KIND_SETTINGS[kind]
+  const eligibleEmitters =
+    kind === 'flame'
+      ? emitters.filter(
+          ({ x }) =>
+            Math.abs(x) > PARTICLE_FLAME_CENTER_EXCLUSION_HALF_WIDTH,
+        )
+      : emitters
+  const activeEmitters =
+    eligibleEmitters.length > 0 ? eligibleEmitters : emitters
   const positions = new Float32Array(count * 3)
   const scales = new Float32Array(count)
   const seeds = new Float32Array(count)
   const drifts = new Float32Array(count * 3)
 
   for (let index = 0; index < count; index += 1) {
-    const emitter = emitters[index % emitters.length]
+    const emitter = activeEmitters[index % activeEmitters.length]
     const baseIndex = index * 3
 
     positions[baseIndex] = emitter.x + (random() - 0.5) * (kind === 'flame' ? 10 : 18)
-    positions[baseIndex + 1] = emitter.y + (random() - 0.5) * (kind === 'flame' ? 8 : 12)
+    positions[baseIndex + 1] =
+      emitter.y +
+      (kind === 'flame' ? PARTICLE_FLAME_SOURCE_Y_OFFSET : 0) +
+      (random() - 0.5) * (kind === 'flame' ? 8 : 12)
     positions[baseIndex + 2] =
       settings.startZ[0] +
       random() * (settings.startZ[1] - settings.startZ[0])

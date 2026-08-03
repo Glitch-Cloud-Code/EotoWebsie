@@ -89,9 +89,9 @@ export function createParticleMaterial(
         float alpha;
 
         if (vKind < 0.5) {
-          vec3 ember = vec3(1.0, 0.24, 0.05);
-          vec3 flame = vec3(1.0, 0.62, 0.12);
-          vec3 core = vec3(1.0, 0.94, 0.74);
+          vec3 ember = vec3(0.92, 0.035, 0.012);
+          vec3 flame = vec3(1.0, 0.27, 0.045);
+          vec3 core = vec3(1.0, 0.74, 0.3);
           color = mix(ember, flame, smoothstep(0.0, 0.45, inverseLife));
           color = mix(color, core, pow(inverseLife, 2.2));
           alpha = softEdge * visibility * (0.32 + pow(inverseLife, 0.7)) * uAlphaMultiplier;

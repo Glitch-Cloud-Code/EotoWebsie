@@ -16,26 +16,28 @@ import {
 describe('logo lighting', () => {
   it('uses a restrained direct-light rig', () => {
     expect(LOGO_AMBIENT_LIGHT.intensity).toBeLessThanOrEqual(0.2)
-    expect(LOGO_HEMISPHERE_LIGHT.intensity).toBeLessThanOrEqual(0.4)
-    expect(LOGO_DIRECTIONAL_LIGHTS).toHaveLength(3)
+    expect(LOGO_HEMISPHERE_LIGHT.intensity).toBe(0)
+    expect(LOGO_DIRECTIONAL_LIGHTS).toHaveLength(2)
     expect(LOGO_POINT_LIGHTS).toHaveLength(0)
     expect(LOGO_SPOT_LIGHTS).toHaveLength(1)
-    expect(LOGO_DIRECTIONAL_LIGHTS[0].intensity).toBeGreaterThan(
-      LOGO_DIRECTIONAL_LIGHTS[2].intensity,
-    )
+    expect(LOGO_DIRECTIONAL_LIGHTS[0].intensity).toBeGreaterThan(3)
   })
 
-  it('uses neutral reflection panels with one restrained red accent', () => {
-    expect(LOGO_ENVIRONMENT_LIGHTS).toHaveLength(3)
+  it('uses neutral front and rear reflection panels', () => {
+    expect(LOGO_ENVIRONMENT_LIGHTS).toHaveLength(2)
     expect(LOGO_ENVIRONMENT_LIGHTS.map((light) => light.key)).toEqual([
       'front-panel',
-      'white-edge-panel',
-      'red-edge-panel',
+      'rear-panel',
     ])
     expect(
-      LOGO_ENVIRONMENT_LIGHTS.every((light) => light.intensity <= 4.5),
+      LOGO_ENVIRONMENT_LIGHTS.every(
+        (light) =>
+          light.intensity <= 4.5 &&
+          Number.parseInt(light.color.slice(1, 3), 16) -
+            Number.parseInt(light.color.slice(5, 7), 16) <
+            20,
+      ),
     ).toBe(true)
-    expect(LOGO_ENVIRONMENT_LIGHTS[2].intensity).toBeLessThan(1)
   })
 
   it('uses a broad, soft red rim cone behind the logo', () => {
@@ -46,7 +48,7 @@ describe('logo lighting', () => {
     expect(rim.angle).toBeGreaterThanOrEqual(0.7)
     expect(rim.penumbra).toBeGreaterThanOrEqual(0.8)
     expect(rim.position[2]).toBeLessThan(0)
-    expect(rim.intensity).toBeLessThanOrEqual(700)
+    expect(rim.intensity).toBeLessThanOrEqual(250)
   })
 
   it('aims cone lights at the centered logo pivot', () => {
@@ -61,7 +63,7 @@ describe('logo lighting', () => {
     )
 
     expect(frontLight).toBeDefined()
-    expect(frontLight?.color).toBe('#fff7ec')
+    expect(frontLight?.color).toBe('#ffffff')
     expect(frontLight?.intensity).toBeGreaterThanOrEqual(3)
     expect(frontLight?.position[2]).toBeGreaterThan(0)
   })

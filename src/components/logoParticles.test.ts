@@ -3,6 +3,8 @@ import {
   createParticleAttributes,
   LOGO_WORDMARK_SHAPE_INDICES,
   LOGO_RENDER_ORDER,
+  PARTICLE_FLAME_CENTER_EXCLUSION_HALF_WIDTH,
+  PARTICLE_FLAME_SOURCE_Y_OFFSET,
   PARTICLE_RANDOM_SEED,
   PARTICLE_DEPTH_CLAMP_Z,
   PARTICLE_KIND_SETTINGS,
@@ -94,11 +96,54 @@ describe('logo particle emitters', () => {
   })
 
   it('keeps flames visible while preserving text readability', () => {
-    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.45)
-    expect(PARTICLE_KIND_SETTINGS.flame.count).toBeLessThanOrEqual(220)
+    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeGreaterThanOrEqual(0.3)
+    expect(PARTICLE_KIND_SETTINGS.flame.alphaMultiplier).toBeLessThanOrEqual(0.4)
+    expect(PARTICLE_KIND_SETTINGS.flame.count).toBeGreaterThanOrEqual(160)
+    expect(PARTICLE_KIND_SETTINGS.flame.count).toBeLessThanOrEqual(200)
+    expect(PARTICLE_KIND_SETTINGS.flame.scale[1]).toBeLessThanOrEqual(84)
     expect(PARTICLE_KIND_SETTINGS.smoke.count).toBeLessThanOrEqual(140)
     expect(PARTICLE_KIND_SETTINGS.flame.depthTest).toBe(true)
     expect(LOGO_RENDER_ORDER.textOverlay).toBeGreaterThan(LOGO_RENDER_ORDER.particles)
+  })
+
+  it('emits flames outside the protected center band with a vertical offset', () => {
+    const emitters = [
+      { x: -150, y: 10 },
+      { x: 0, y: 20 },
+      { x: 170, y: 30 },
+    ]
+    const { positions } = createParticleAttributes(
+      emitters,
+      'flame',
+      () => 0.5,
+      3,
+    )
+
+    expect(PARTICLE_FLAME_CENTER_EXCLUSION_HALF_WIDTH).toBe(110)
+    expect(Array.from(positions.filter((_, index) => index % 3 === 0))).toEqual([
+      -150,
+      170,
+      -150,
+    ])
+    expect(Array.from(positions.filter((_, index) => index % 3 === 1))).toEqual([
+      10 + PARTICLE_FLAME_SOURCE_Y_OFFSET,
+      30 + PARTICLE_FLAME_SOURCE_Y_OFFSET,
+      10 + PARTICLE_FLAME_SOURCE_Y_OFFSET,
+    ])
+  })
+
+  it('keeps center emitters when no outside flame source exists', () => {
+    const { positions } = createParticleAttributes(
+      [{ x: 0, y: 12 }],
+      'flame',
+      () => 0.5,
+      1,
+    )
+
+    expect(Array.from(positions.slice(0, 2))).toEqual([
+      0,
+      12 + PARTICLE_FLAME_SOURCE_Y_OFFSET,
+    ])
   })
 
   it('returns empty buffers when no emitters are available', () => {
