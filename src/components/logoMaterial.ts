@@ -1,44 +1,71 @@
 import { Color, DoubleSide, MeshPhysicalMaterial } from 'three'
 import { LOGO_MATERIAL_FRONT_AXIS } from './logoAsset'
 
-export const LOGO_MATERIAL_PRESET = {
-  bevelColor: '#f8f5ef',
-  clearcoat: 0.14,
-  clearcoatRoughness: 0.34,
-  faceColor: '#d9dee2',
-  metalness: 0.9,
-  roughness: 0.34,
-  sideColor: '#292d33',
-} as const
+export type LogoMaterialRole = 'symbol' | 'wordmark'
 
-const FORGED_METAL_SHADER_KEY = 'eoto-forged-metal-v2'
-
-export function createForgedMetalMaterial() {
-  const material = new MeshPhysicalMaterial({
-    clearcoat: LOGO_MATERIAL_PRESET.clearcoat,
-    clearcoatRoughness: LOGO_MATERIAL_PRESET.clearcoatRoughness,
-    color: '#ffffff',
+export const LOGO_MATERIAL_PRESETS = {
+  symbol: {
+    backColor: '#707a80',
+    bevelColor: '#b1bbc0',
+    clearcoat: 0.12,
+    clearcoatRoughness: 0.38,
     emissive: '#000000',
     emissiveIntensity: 0,
-    envMapIntensity: 1.15,
-    metalness: LOGO_MATERIAL_PRESET.metalness,
+    envMapIntensity: 0.92,
+    faceColor: '#879198',
+    metalness: 0.9,
+    roughness: 0.38,
+    sideColor: '#4d555b',
+  },
+  wordmark: {
+    backColor: '#919a9f',
+    bevelColor: '#ffffff',
+    clearcoat: 0.18,
+    clearcoatRoughness: 0.3,
+    emissive: '#949ca1',
+    emissiveIntensity: 0.22,
+    envMapIntensity: 1.22,
+    faceColor: '#f3f6f7',
+    metalness: 0.92,
+    roughness: 0.3,
+    sideColor: '#5d656b',
+  },
+} as const
+
+const FORGED_METAL_SHADER_KEY = 'eoto-forged-metal-v3'
+
+export function createForgedMetalMaterial(
+  role: LogoMaterialRole = 'wordmark',
+) {
+  const preset = LOGO_MATERIAL_PRESETS[role]
+  const material = new MeshPhysicalMaterial({
+    clearcoat: preset.clearcoat,
+    clearcoatRoughness: preset.clearcoatRoughness,
+    color: '#ffffff',
+    emissive: preset.emissive,
+    emissiveIntensity: preset.emissiveIntensity,
+    envMapIntensity: preset.envMapIntensity,
+    metalness: preset.metalness,
     opacity: 1,
-    roughness: LOGO_MATERIAL_PRESET.roughness,
+    roughness: preset.roughness,
     side: DoubleSide,
     transparent: false,
   })
 
-  material.name = 'logo-forged-metal'
-  material.customProgramCacheKey = () => FORGED_METAL_SHADER_KEY
+  material.name = `logo-forged-metal-${role}`
+  material.customProgramCacheKey = () => `${FORGED_METAL_SHADER_KEY}-${role}`
   material.onBeforeCompile = (shader) => {
     shader.uniforms.logoBevelColor = {
-      value: new Color(LOGO_MATERIAL_PRESET.bevelColor),
+      value: new Color(preset.bevelColor),
+    }
+    shader.uniforms.logoBackColor = {
+      value: new Color(preset.backColor),
     }
     shader.uniforms.logoFaceColor = {
-      value: new Color(LOGO_MATERIAL_PRESET.faceColor),
+      value: new Color(preset.faceColor),
     }
     shader.uniforms.logoSideColor = {
-      value: new Color(LOGO_MATERIAL_PRESET.sideColor),
+      value: new Color(preset.sideColor),
     }
 
     shader.vertexShader = shader.vertexShader
@@ -65,6 +92,7 @@ export function createForgedMetalMaterial() {
         `#include <common>
         varying vec3 vLogoObjectNormal;
         varying vec3 vLogoObjectPosition;
+        uniform vec3 logoBackColor;
         uniform vec3 logoBevelColor;
         uniform vec3 logoFaceColor;
         uniform vec3 logoSideColor;
@@ -83,13 +111,16 @@ export function createForgedMetalMaterial() {
           ${LOGO_MATERIAL_FRONT_AXIS[1].toFixed(1)},
           ${LOGO_MATERIAL_FRONT_AXIS[2].toFixed(1)}
         ));
-        float logoAlignment = abs(dot(normalize(vLogoObjectNormal), logoFrontAxis));
+        float logoAlignment =
+          dot(normalize(vLogoObjectNormal), logoFrontAxis);
         float logoFrontMask = smoothstep(0.78, 0.94, logoAlignment);
+        float logoBackMask = smoothstep(0.78, 0.94, -logoAlignment);
         float logoBevelMask =
-          smoothstep(0.14, 0.66, logoAlignment) *
-          (1.0 - smoothstep(0.7, 0.92, logoAlignment));
+          smoothstep(0.14, 0.66, abs(logoAlignment)) *
+          (1.0 - smoothstep(0.7, 0.92, abs(logoAlignment)));
 
-        vec3 logoMetalColor = mix(logoSideColor, logoFaceColor, logoFrontMask);
+        vec3 logoMetalColor = mix(logoSideColor, logoBackColor, logoBackMask);
+        logoMetalColor = mix(logoMetalColor, logoFaceColor, logoFrontMask);
         logoMetalColor = mix(logoMetalColor, logoBevelColor, logoBevelMask * 0.82);
 
         float logoGrain = logoHash(floor(vLogoObjectPosition * vec3(3.2, 8.0, 3.2)));

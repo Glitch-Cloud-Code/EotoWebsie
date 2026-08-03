@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "generate:logo-metadata": "node scripts/generate-logo-metadata.mjs",
+    "generate:logo-model": "node scripts/split-logo-model.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

@@ -5,6 +5,8 @@ import {
   LOGO_GLB_ROTATION,
   LOGO_GLB_SCALE,
   LOGO_MATERIAL_FRONT_AXIS,
+  LOGO_SYMBOL_MESH_NAME,
+  LOGO_WORDMARK_MESH_NAME,
   prepareLogoScene,
 } from './logoAsset'
 
@@ -16,21 +18,45 @@ describe('logo GLB asset', () => {
     expect(file.length).toBeGreaterThan(100_000)
   })
 
-  it('clones render meshes and applies the shared metal material', () => {
+  it('ships separate named symbol and wordmark meshes', async () => {
+    const file = await readFile('public/assets/logo/logo.glb')
+    const jsonLength = file.readUInt32LE(12)
+    const json = JSON.parse(
+      file
+        .subarray(20, 20 + jsonLength)
+        .toString('utf8')
+        .replace(/\0/g, ''),
+    ) as { nodes?: Array<{ name?: string }> }
+    const names = json.nodes?.map(({ name }) => name) ?? []
+
+    expect(names).toContain(LOGO_SYMBOL_MESH_NAME)
+    expect(names).toContain(LOGO_WORDMARK_MESH_NAME)
+  })
+
+  it('clones render meshes and applies role-specific metal materials', () => {
     const source = new Group()
     const originalMaterial = new MeshBasicMaterial()
-    const metalMaterial = new MeshBasicMaterial()
-    const sourceMesh = new Mesh(new BufferGeometry(), originalMaterial)
-    source.add(sourceMesh)
+    const symbolMaterial = new MeshBasicMaterial()
+    const wordmarkMaterial = new MeshBasicMaterial()
+    const symbolMesh = new Mesh(new BufferGeometry(), originalMaterial)
+    const wordmarkMesh = new Mesh(new BufferGeometry(), originalMaterial)
+    symbolMesh.name = LOGO_SYMBOL_MESH_NAME
+    wordmarkMesh.name = LOGO_WORDMARK_MESH_NAME
+    source.add(symbolMesh, wordmarkMesh)
 
-    const prepared = prepareLogoScene(source, metalMaterial)
-    const preparedMesh = prepared.children[0] as Mesh
+    const prepared = prepareLogoScene(source, {
+      symbol: symbolMaterial,
+      wordmark: wordmarkMaterial,
+    })
+    const preparedSymbol = prepared.children[0] as Mesh
+    const preparedWordmark = prepared.children[1] as Mesh
 
     expect(prepared).not.toBe(source)
-    expect(preparedMesh.material).toBe(metalMaterial)
-    expect(preparedMesh.castShadow).toBe(true)
-    expect(preparedMesh.receiveShadow).toBe(true)
-    expect(sourceMesh.material).toBe(originalMaterial)
+    expect(preparedSymbol.material).toBe(symbolMaterial)
+    expect(preparedWordmark.material).toBe(wordmarkMaterial)
+    expect(preparedSymbol.castShadow).toBe(true)
+    expect(preparedWordmark.receiveShadow).toBe(true)
+    expect(symbolMesh.material).toBe(originalMaterial)
   })
 
   it('rotates the source diagonal XZ face toward the camera', () => {

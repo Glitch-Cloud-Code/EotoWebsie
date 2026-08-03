@@ -36,10 +36,16 @@ export function LogoModel({
 }: LogoModelProps) {
   const root = useRef<Group>(null)
   const { scene: sourceScene } = useGLTF(modelSrc)
-  const material = useMemo(() => createForgedMetalMaterial(), [])
+  const materials = useMemo(
+    () => ({
+      symbol: createForgedMetalMaterial('symbol'),
+      wordmark: createForgedMetalMaterial('wordmark'),
+    }),
+    [],
+  )
   const glbScene = useMemo(
-    () => prepareLogoScene(sourceScene, material),
-    [material, sourceScene],
+    () => prepareLogoScene(sourceScene, materials),
+    [materials, sourceScene],
   )
   const { removeSparkBurst, sparkBursts, startSpin } = useLogoInteraction({
     globalPointer,
@@ -52,9 +58,10 @@ export function LogoModel({
 
   useEffect(() => {
     return () => {
-      material.dispose()
+      materials.symbol.dispose()
+      materials.wordmark.dispose()
     }
-  }, [material])
+  }, [materials])
 
   return (
     <>
