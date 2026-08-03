@@ -42,33 +42,10 @@
 .site-header-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   width: min(var(--content-width), calc(100% - 2rem));
   min-height: 4.25rem;
   margin: 0 auto;
-}
-
-.site-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  color: var(--color-text);
-  font-size: 0.74rem;
-  font-weight: 650;
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.brand-monogram {
-  display: grid;
-  width: 2.4rem;
-  height: 2.4rem;
-  border: 1px solid var(--color-line-strong);
-  color: var(--color-steel);
-  font-size: 0.58rem;
-  place-items: center;
-  letter-spacing: 0.05em;
 }
 
 .site-navigation {

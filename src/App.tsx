@@ -9,7 +9,7 @@ import { HeroSection } from './components/HeroSection'
 import { PhotoGallery } from './components/PhotoGallery'
 
 const navigation = [
-  { href: '#shows', label: 'Shows' },
+  { href: '#top', label: 'Shows' },
   { href: '#everyday', label: 'Everyday' },
   { href: '#story', label: 'Story' },
   { href: '#photos', label: 'Photos' },
@@ -21,18 +21,13 @@ function App() {
   const closeMenu = () => setMenuOpen(false)
 
   return (
-    <div className="site-shell">
+    <div className="site-shell" id="top">
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
 
       <header className="site-header">
         <div className="site-header-inner">
-          <a className="site-brand" href="#top" onClick={closeMenu}>
-            <span className="brand-monogram" aria-hidden="true">EOTO</span>
-            <span className="visually-hidden">Echoes Of The Orion</span>
-          </a>
-
           <nav
             aria-label="Primary navigation"
             className={`site-navigation ${menuOpen ? 'site-navigation-open' : ''}`}

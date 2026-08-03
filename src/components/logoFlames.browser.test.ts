@@ -1026,6 +1026,11 @@ describe('logo flame visibility', () => {
       text: 'echoesoftheorionband@gmail.com',
     })
     expect(desktop.navigationTargetsResolve).toBe(true)
+    const showsLink = page.getByRole('link', { name: 'Shows' })
+    expect(await showsLink.getAttribute('href')).toBe('#top')
+    await showsLink.click()
+    await page.waitForFunction(() => window.scrollY === 0)
+    expect(new URL(page.url()).hash).toBe('#top')
     expect(desktop.socialLinks).toHaveLength(4)
     expect(
       desktop.socialLinks.every(
