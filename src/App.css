@@ -19,6 +19,17 @@
   transform: translateY(0);
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .site-header {
   position: sticky;
   z-index: 30;
@@ -108,20 +119,24 @@ footer {
 
 .hero-section {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  align-items: center;
-  gap: clamp(2rem, 5vw, 5.5rem);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 1.125rem;
   min-height: calc(100svh - 4.25rem);
-  padding: clamp(3rem, 7vh, 5rem) 0 4rem;
+  padding: 1.75rem 0;
 }
 
-.hero-copy {
+.hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: 3rem;
+  min-height: 0;
+}
+
+.hero-main > * {
   min-width: 0;
-  position: relative;
-  z-index: 2;
 }
 
-.eyebrow,
 .section-kicker,
 .section-index,
 .show-status,
@@ -133,33 +148,6 @@ footer {
   letter-spacing: 0.16em;
 }
 
-.hero-copy h1 {
-  margin: 0.6rem 0 1.6rem;
-  color: var(--color-steel);
-  font-size: 0.84rem;
-  font-weight: 650;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-}
-
-.hero-statement {
-  max-width: 14ch;
-  margin: 0;
-  color: var(--color-text);
-  font-family: 'Thunderbolt', 'Inter', sans-serif;
-  font-size: clamp(2.5rem, 4.15vw, 4.1rem);
-  line-height: 0.94;
-  text-transform: uppercase;
-}
-
-.hero-intro {
-  max-width: 34rem;
-  margin: 1.3rem 0 2.25rem;
-  color: var(--color-muted);
-  font-size: 0.96rem;
-  line-height: 1.65;
-}
-
 .shows-block {
   border-top: 1px solid var(--color-line-strong);
   border-bottom: 1px solid var(--color-line);
@@ -167,24 +155,24 @@ footer {
 
 .shows-heading {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  min-height: 4.25rem;
+  min-height: 5.5rem;
+  padding: 1.25rem 0;
   color: var(--color-steel);
 }
 
 .shows-heading > div {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
+  display: grid;
+  gap: 0.45rem;
 }
 
 .shows-heading h2 {
   margin: 0;
   color: var(--color-text);
-  font-size: 0.88rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+  font-size: clamp(1.75rem, 2.4vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: 0;
 }
 
 .shows-list {
@@ -235,16 +223,19 @@ footer {
 
 .empty-state {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  min-height: 5.75rem;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 11rem;
+  padding: 1.25rem 0;
   border-top: 1px solid var(--color-line);
 }
 
-.empty-state p {
+.empty-state > div p {
   margin: 0;
   color: var(--color-text);
+  font-size: 1.05rem;
 }
 
 .empty-state span {
@@ -255,16 +246,22 @@ footer {
 }
 
 .empty-state a {
-  flex: 0 0 auto;
   color: var(--color-steel);
+}
+
+.empty-state .empty-state-label {
+  margin: 0;
+  color: var(--color-red-light);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
 }
 
 .hero-logo-pane {
   position: relative;
   display: grid;
-  width: 100%;
   min-width: 0;
-  min-height: clamp(31rem, 56vw, 43rem);
+  min-height: 0;
   place-items: center;
 }
 
@@ -272,10 +269,57 @@ footer {
 .logo-fallback-shell {
   position: relative;
   z-index: 1;
-  width: min(100%, 43rem);
+  width: min(100%, 38.75rem, calc(100svh - 14rem));
   min-width: 0;
   max-width: 100%;
   aspect-ratio: 1;
+}
+
+.hero-platform-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--color-line-strong);
+  border-bottom: 1px solid var(--color-line-strong);
+}
+
+.hero-platform-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 5rem;
+  padding: 0 1.25rem;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.hero-platform-link + .hero-platform-link {
+  border-left: 1px solid var(--color-line);
+}
+
+.hero-platform-link-youtube > svg:first-child {
+  color: #ef4444;
+}
+
+.hero-platform-link-spotify > svg:first-child {
+  color: #1ed760;
+}
+
+.hero-platform-link > svg:last-child {
+  transition: transform 180ms ease;
+}
+
+.hero-platform-link:hover {
+  color: var(--color-text);
+}
+
+.hero-platform-link:hover > svg:last-child {
+  transform: translate(2px, -2px);
+}
+
+.hero-platform-link:active {
+  opacity: 0.82;
 }
 
 .logo-canvas-shell canvas {
@@ -587,19 +631,18 @@ footer {
 
 @media (max-width: 980px) {
   .hero-section {
-    grid-template-columns: minmax(0, 1fr);
     min-height: auto;
-    padding-top: 3rem;
+    padding-top: 2rem;
   }
 
-  .hero-copy {
-    max-width: 44rem;
+  .hero-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
   }
 
   .hero-logo-pane {
-    max-width: 43rem;
+    width: min(100%, 24rem);
     margin: 0 auto;
-    min-height: 31rem;
   }
 
   .about-layout {
@@ -613,11 +656,7 @@ footer {
   .hero-section,
   .content-band,
   .site-footer {
-    width: min(var(--content-width), calc(100% - 1rem));
-  }
-
-  .brand-name {
-    display: none;
+    width: min(var(--content-width), calc(100% - 2rem));
   }
 
   .menu-toggle {
@@ -653,27 +692,12 @@ footer {
   }
 
   .hero-section {
-    gap: 1.5rem;
-    padding: 2.5rem 0 2rem;
+    gap: 0.5rem;
+    padding: 1rem 0 1.5rem;
   }
 
   .content-band {
     padding: 3.5rem 0;
-  }
-
-  .hero-copy h1 {
-    margin-bottom: 1.1rem;
-  }
-
-  .hero-statement {
-    max-width: 12ch;
-    font-size: clamp(2.15rem, 10.5vw, 2.75rem);
-  }
-
-  .hero-intro {
-    margin: 1.1rem 0 1.75rem;
-    font-size: 0.9rem;
-    line-height: 1.6;
   }
 
   .shows-heading > div {
@@ -681,16 +705,30 @@ footer {
   }
 
   .empty-state {
-    align-items: flex-start;
-    flex-direction: column;
     gap: 0.7rem;
     padding: 1rem 0;
   }
 
   .hero-logo-pane {
+    width: min(100%, 20.625rem);
+  }
+
+  .logo-canvas-shell,
+  .logo-fallback-shell {
     width: 100%;
-    max-width: 100%;
-    min-height: 24rem;
+  }
+
+  .hero-platform-links {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-platform-link {
+    min-height: 3.75rem;
+  }
+
+  .hero-platform-link + .hero-platform-link {
+    border-top: 1px solid var(--color-line);
+    border-left: 0;
   }
 
   .featured-watch {
@@ -774,5 +812,14 @@ footer {
   .show-row a,
   .empty-state a {
     transition: none;
+  }
+
+  .hero-platform-link,
+  .hero-platform-link > svg:last-child {
+    transition: none;
+  }
+
+  .hero-platform-link:hover > svg:last-child {
+    transform: none;
   }
 }

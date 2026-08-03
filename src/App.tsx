@@ -1,8 +1,6 @@
-import { Suspense, lazy, useState } from 'react'
+import { useState } from 'react'
 import {
-  ArrowDownRight,
   ArrowUpRight,
-  CalendarDays,
   Menu,
   Music2,
   Play,
@@ -10,19 +8,15 @@ import {
   Youtube,
 } from 'lucide-react'
 import './App.css'
-import { formatShowDateParts, siteContent } from './content/siteContent'
-
-const LogoExperience = lazy(() =>
-  import('./components/LogoExperience').then((module) => ({
-    default: module.LogoExperience,
-  })),
-)
+import { siteContent } from './content/siteContent'
+import { HeroSection } from './components/HeroSection'
 
 const navigation = [
   { href: '#shows', label: 'Shows' },
-  { href: '#watch', label: 'Watch' },
-  { href: '#band', label: 'Band' },
-  { href: '#connect', label: 'Connect' },
+  { href: '#watch', label: 'Everyday' },
+  { href: '#band', label: 'Story' },
+  { href: '#visuals', label: 'Photos' },
+  { href: '#connect', label: 'Contact' },
 ]
 
 function SocialIcon({ kind }: { kind: string }) {
@@ -34,7 +28,7 @@ function SocialIcon({ kind }: { kind: string }) {
 }
 
 function App() {
-  const { hero, videos, about, gallery, links, footer } = siteContent
+  const { videos, about, gallery, links, footer } = siteContent
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
 
@@ -48,7 +42,7 @@ function App() {
         <div className="site-header-inner">
           <a className="site-brand" href="#top" onClick={closeMenu}>
             <span className="brand-monogram" aria-hidden="true">EOTO</span>
-            <span className="brand-name">Echoes Of The Orion</span>
+            <span className="visually-hidden">Echoes Of The Orion</span>
           </a>
 
           <nav
@@ -77,86 +71,12 @@ function App() {
       </header>
 
       <main id="main-content">
-        <section className="hero-section" id="top">
-          <div className="hero-copy">
-            <p className="eyebrow">{hero.eyebrow}</p>
-            <h1>{hero.title}</h1>
-            {hero.quote ? <p className="hero-statement">{hero.quote}</p> : null}
-            <p className="hero-intro">{hero.intro}</p>
-
-            <div aria-labelledby="shows-title" className="shows-block" id="shows">
-              <div className="shows-heading">
-                <div>
-                  <span className="section-index">Live</span>
-                  <h2 id="shows-title">Upcoming concerts</h2>
-                </div>
-                <CalendarDays aria-hidden="true" size={21} strokeWidth={1.5} />
-              </div>
-
-              {hero.shows.length > 0 ? (
-                <ul className="shows-list">
-                  {hero.shows.map((show) => {
-                    const showDate = formatShowDateParts(show)
-                    const rawDate = show.date ?? show.dateLabel
-
-                    return (
-                      <li className="show-row" key={`${rawDate}-${show.venue}-${show.city}`}>
-                        <div className="show-date">
-                          <span className="show-day">{showDate.day}</span>
-                          <span className="show-date-label">{showDate.label || rawDate}</span>
-                        </div>
-
-                        <div className="show-meta">
-                          <p>{show.venue}</p>
-                          <span>{show.city}</span>
-                        </div>
-
-                        {show.ticketUrl ? (
-                          <a href={show.ticketUrl} target="_blank" rel="noreferrer">
-                            Tickets
-                            <ArrowUpRight aria-hidden="true" size={16} />
-                          </a>
-                        ) : (
-                          <span className="show-status">{show.status ?? 'Details soon'}</span>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : (
-                <div className="empty-state">
-                  <div>
-                    <p>No dates announced.</p>
-                    <span>New live dates will appear here first.</span>
-                  </div>
-                  <a href="#watch">
-                    Watch while you wait
-                    <ArrowDownRight aria-hidden="true" size={16} />
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="hero-logo-pane">
-            <Suspense
-              fallback={
-                <div className="logo-fallback-shell">
-                  <img
-                    alt="Echoes Of The Orion logo"
-                    className="logo-fallback-image"
-                    src={`${import.meta.env.BASE_URL}assets/logo/logo-fallback.svg`}
-                  />
-                </div>
-              }
-            >
-              <LogoExperience
-                alt="Echoes Of The Orion logo"
-                fallbackSrc={`${import.meta.env.BASE_URL}assets/logo/logo-fallback.svg`}
-              />
-            </Suspense>
-          </div>
-        </section>
+        <HeroSection
+          bandName={siteContent.identity.name}
+          booking={siteContent.booking}
+          platforms={siteContent.platforms}
+          shows={siteContent.shows}
+        />
 
         <section className="content-band watch-section" id="watch">
           <div className="section-heading">

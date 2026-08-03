@@ -663,14 +663,74 @@ describe('logo flame visibility', () => {
     await page.close()
   }, 30_000)
 
-  it('opens and closes the mobile navigation menu', async () => {
+  it('keeps the concert-first hero contained across target viewports', async () => {
     const page = await browser.newPage({
-      viewport: { width: 1280, height: 900 },
+      viewport: { width: 1440, height: 900 },
     })
     await page.goto(url, { waitUntil: 'domcontentloaded' })
     const logo = page.locator('.logo-canvas-shell')
     await logo.waitFor({ state: 'visible', timeout: 10_000 })
     expect(await logo.getAttribute('data-logo-quality')).toBe('high')
+
+    const desktopBounds = await page.evaluate(() => {
+      const hero = document.querySelector('.hero-section')
+      const logo = document.querySelector('.logo-canvas-shell')
+      const platforms = document.querySelector('.hero-platform-links')
+      const booking = document.querySelector('.empty-state a')
+      if (!hero || !logo || !platforms || !booking) {
+        throw new Error('Desktop hero bounds unavailable')
+      }
+
+      const heroBounds = hero.getBoundingClientRect()
+      const logoBounds = logo.getBoundingClientRect()
+      const platformBounds = platforms.getBoundingClientRect()
+      const targetHeights = [
+        booking.getBoundingClientRect().height,
+        ...Array.from(platforms.querySelectorAll('a')).map(
+          (link) => link.getBoundingClientRect().height,
+        ),
+      ]
+
+      return {
+        heroBottom: heroBounds.bottom,
+        innerHeight: window.innerHeight,
+        logoWidth: logoBounds.width,
+        platformBottom: platformBounds.bottom,
+        targetHeights,
+      }
+    })
+    expect(desktopBounds.heroBottom).toBeLessThanOrEqual(
+      desktopBounds.innerHeight + 1,
+    )
+    expect(desktopBounds.platformBottom).toBeLessThanOrEqual(
+      desktopBounds.innerHeight + 1,
+    )
+    expect(desktopBounds.logoWidth).toBeGreaterThanOrEqual(580)
+    expect(desktopBounds.logoWidth).toBeLessThanOrEqual(620)
+    expect(Math.min(...desktopBounds.targetHeights)).toBeGreaterThanOrEqual(44)
+    expect(await page.locator('.hero-statement').count()).toBe(0)
+    expect(await page.locator('.hero-section h1.visually-hidden').count()).toBe(1)
+
+    await page.setViewportSize({ width: 1366, height: 768 })
+    const shortDesktopBounds = await page.evaluate(() => {
+      const hero = document.querySelector('.hero-section')
+      const platforms = document.querySelector('.hero-platform-links')
+      if (!hero || !platforms) {
+        throw new Error('Short desktop hero bounds unavailable')
+      }
+
+      return {
+        heroBottom: hero.getBoundingClientRect().bottom,
+        innerHeight: window.innerHeight,
+        platformBottom: platforms.getBoundingClientRect().bottom,
+      }
+    })
+    expect(shortDesktopBounds.heroBottom).toBeLessThanOrEqual(
+      shortDesktopBounds.innerHeight + 1,
+    )
+    expect(shortDesktopBounds.platformBottom).toBeLessThanOrEqual(
+      shortDesktopBounds.innerHeight + 1,
+    )
 
     await page.setViewportSize({ width: 390, height: 844 })
     await page.waitForFunction(
@@ -691,14 +751,16 @@ describe('logo flame visibility', () => {
     const mobileBounds = await page.evaluate(() => {
       const hero = document.querySelector('.hero-section')
       const logo = document.querySelector('.logo-canvas-shell')
-      const statement = document.querySelector('.hero-statement')
-      if (!hero || !logo || !statement) {
+      const shows = document.querySelector('.shows-block')
+      const platforms = document.querySelector('.hero-platform-links')
+      if (!hero || !logo || !shows || !platforms) {
         throw new Error('Mobile hero bounds unavailable')
       }
 
       const heroBounds = hero.getBoundingClientRect()
       const logoBounds = logo.getBoundingClientRect()
-      const statementBounds = statement.getBoundingClientRect()
+      const showsBounds = shows.getBoundingClientRect()
+      const platformBounds = platforms.getBoundingClientRect()
 
       return {
         hero: {
@@ -707,17 +769,22 @@ describe('logo flame visibility', () => {
         },
         innerWidth: window.innerWidth,
         logo: {
+          bottom: logoBounds.bottom,
           left: logoBounds.left,
           right: logoBounds.right,
+          top: logoBounds.top,
+        },
+        platforms: {
+          left: platformBounds.left,
+          right: platformBounds.right,
+          top: platformBounds.top,
         },
         scrollWidth: document.documentElement.scrollWidth,
-        statement: {
-          fontSize: Number.parseFloat(
-            window.getComputedStyle(statement).fontSize,
-          ),
-          height: statementBounds.height,
-          left: statementBounds.left,
-          right: statementBounds.right,
+        shows: {
+          bottom: showsBounds.bottom,
+          left: showsBounds.left,
+          right: showsBounds.right,
+          top: showsBounds.top,
         },
       }
     })
@@ -730,14 +797,24 @@ describe('logo flame visibility', () => {
     expect(mobileBounds.logo.right).toBeLessThanOrEqual(
       mobileBounds.hero.right + 1,
     )
-    expect(mobileBounds.statement.left).toBeGreaterThanOrEqual(
+    expect(mobileBounds.shows.left).toBeGreaterThanOrEqual(
       mobileBounds.hero.left - 1,
     )
-    expect(mobileBounds.statement.right).toBeLessThanOrEqual(
+    expect(mobileBounds.shows.right).toBeLessThanOrEqual(
       mobileBounds.hero.right + 1,
     )
-    expect(mobileBounds.statement.fontSize).toBeLessThanOrEqual(44)
-    expect(mobileBounds.statement.height).toBeLessThanOrEqual(145)
+    expect(mobileBounds.platforms.left).toBeGreaterThanOrEqual(
+      mobileBounds.hero.left - 1,
+    )
+    expect(mobileBounds.platforms.right).toBeLessThanOrEqual(
+      mobileBounds.hero.right + 1,
+    )
+    expect(mobileBounds.shows.bottom).toBeLessThanOrEqual(
+      mobileBounds.logo.top,
+    )
+    expect(mobileBounds.logo.bottom).toBeLessThanOrEqual(
+      mobileBounds.platforms.top,
+    )
     const mobileLogoBounds = await readIsolatedLogoBounds(page)
     expect(
       Math.min(
@@ -747,6 +824,19 @@ describe('logo flame visibility', () => {
         mobileLogoBounds.bottom,
       ),
     ).toBeGreaterThanOrEqual(0.05)
+
+    await page.close()
+  }, 45_000)
+
+  it('opens and closes the mobile navigation menu', async () => {
+    const page = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+    })
+    await page.goto(url, { waitUntil: 'domcontentloaded' })
+    const logo = page.locator('.logo-canvas-shell')
+    await logo.waitFor({ state: 'visible', timeout: 10_000 })
+    expect(await logo.getAttribute('data-logo-quality')).toBe('low')
+
     const toggle = page.locator('.menu-toggle')
     await toggle.waitFor({ state: 'visible', timeout: 10_000 })
     await toggle.click()

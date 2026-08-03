@@ -93,14 +93,7 @@ export type SiteContent = {
     statement: string
   }
 
-  // Temporary projections keep the current page working while sections migrate.
-  hero: {
-    eyebrow: string
-    intro: string
-    quote?: string
-    shows: Show[]
-    title: string
-  }
+  // Temporary projections keep lower page sections working while they migrate.
   videos: {
     featured: {
       description: string
@@ -301,12 +294,6 @@ export const siteContent: SiteContent = {
   contact: {
     email,
     statement: 'Live invitations, collaboration, and general enquiries.',
-  },
-  hero: {
-    eyebrow: 'Melodic Alt Metal · Riga, Latvia',
-    intro: 'Working on a full album release and looking for live opportunities.',
-    shows,
-    title: 'Echoes Of The Orion',
   },
   videos: {
     featured: {
