@@ -201,9 +201,9 @@ const gallery: GalleryPhotoAsset[] = [
 ]
 
 const story = [
-  'Echoes Of The Orion formed in Riga in March 2023 to learn together, create original music, and play it on stage.',
-  'The band plays Melodic Alt Metal and has released three songs. Everyday is its most polished release so far.',
-  'The band is working on a full album release and looking for new opportunities to perform live.',
+  'Echoes Of The Orion came together in Riga in March 2023, drawn by a shared desire to learn, create original music, and bring it to the stage.',
+  'Since then, we have released three songs and begun shaping a Melodic Alt Metal sound of our own. Everyday is our most polished release yet.',
+  'We are now pouring that momentum into a full album while looking for new stages where we can bring these songs to life.',
 ]
 
 const featuredRelease: Release = {
@@ -213,8 +213,8 @@ const featuredRelease: Release = {
   },
   spotifyUrl: 'https://open.spotify.com/track/3vx6sgOJQL4aalFRwB6Mt7',
   story: [
-    'The band won a vocal competition with Everyday at ANTEX Recording Studio.',
-    'The prize gave the band an opportunity to record a song there, which the band used to record and release Everyday.',
+    'Everyday opened a new chapter for us when it won a vocal competition at ANTEX Recording Studio.',
+    'The prize was a recording session, giving us the chance to shape the song into the release you hear today.',
   ],
   title: 'Everyday',
   version: 'Radio Edit',

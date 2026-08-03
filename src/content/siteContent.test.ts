@@ -111,7 +111,7 @@ describe('factual site content', () => {
       year: 2025,
     })
     expect(siteContent.featuredRelease.story.join(' ')).toContain(
-      'The band won a vocal competition with Everyday at ANTEX Recording Studio.',
+      'Everyday opened a new chapter for us when it won a vocal competition at ANTEX Recording Studio.',
     )
   })
 
