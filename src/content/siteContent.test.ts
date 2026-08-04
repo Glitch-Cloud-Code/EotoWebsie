@@ -177,7 +177,7 @@ describe('factual site content', () => {
       },
       { name: 'Dmitry Anokhin', roles: ['Bass'] },
       { name: 'Ilya Rogov', roles: ['Drums'] },
-      { name: 'Igor Maestro', roles: ['2nd Guitar'] },
+      { name: 'Igor Podlazov', roles: ['2nd Guitar'] },
     ])
     expect(new Set(siteContent.members.map(({ name }) => name)).size).toBe(5)
   })

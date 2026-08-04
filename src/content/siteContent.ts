@@ -241,7 +241,7 @@ const members: Member[] = [
     roles: ['Drums'],
   },
   {
-    name: 'Igor Maestro',
+    name: 'Igor Podlazov',
     roles: ['2nd Guitar'],
   },
 ]
