@@ -744,26 +744,28 @@ describe('logo flame visibility', () => {
       const hero = document.querySelector('.hero-section')
       const logo = document.querySelector('.logo-canvas-shell')
       const platforms = document.querySelector('.hero-platform-links')
-      const booking = document.querySelector('.empty-state a')
-      if (!hero || !logo || !platforms || !booking) {
+      const shows = document.querySelector('.shows-list')
+      const showRows = Array.from(document.querySelectorAll('.show-row'))
+      if (!hero || !logo || !platforms || !shows || showRows.length !== 2) {
         throw new Error('Desktop hero bounds unavailable')
       }
 
       const heroBounds = hero.getBoundingClientRect()
       const logoBounds = logo.getBoundingClientRect()
       const platformBounds = platforms.getBoundingClientRect()
-      const targetHeights = [
-        booking.getBoundingClientRect().height,
-        ...Array.from(platforms.querySelectorAll('a')).map(
-          (link) => link.getBoundingClientRect().height,
-        ),
-      ]
+      const targetHeights = Array.from(platforms.querySelectorAll('a')).map(
+        (link) => link.getBoundingClientRect().height,
+      )
 
       return {
         heroBottom: heroBounds.bottom,
         innerHeight: window.innerHeight,
         logoWidth: logoBounds.width,
         platformBottom: platformBounds.bottom,
+        showListBottom: shows.getBoundingClientRect().bottom,
+        showRowHeights: showRows.map(
+          (showRow) => showRow.getBoundingClientRect().height,
+        ),
         targetHeights,
       }
     })
@@ -773,6 +775,10 @@ describe('logo flame visibility', () => {
     expect(desktopBounds.platformBottom).toBeLessThanOrEqual(
       desktopBounds.innerHeight + 1,
     )
+    expect(desktopBounds.showListBottom).toBeLessThanOrEqual(
+      desktopBounds.innerHeight + 1,
+    )
+    expect(Math.min(...desktopBounds.showRowHeights)).toBeGreaterThan(0)
     expect(desktopBounds.logoWidth).toBeGreaterThanOrEqual(580)
     expect(desktopBounds.logoWidth).toBeLessThanOrEqual(620)
     expect(Math.min(...desktopBounds.targetHeights)).toBeGreaterThanOrEqual(44)
@@ -895,6 +901,67 @@ describe('logo flame visibility', () => {
 
     await page.close()
   }, 45_000)
+
+  it('shows venue addresses when hovering venue social links', async () => {
+    const page = await browser.newPage({
+      viewport: { width: 1280, height: 900 },
+    })
+    await page.goto(url, { waitUntil: 'domcontentloaded' })
+
+    const depoLink = page.locator('.show-venue-link', { hasText: 'DEPO' })
+    await depoLink.waitFor({ state: 'visible', timeout: 10_000 })
+
+    expect(await depoLink.getAttribute('href')).toBe(
+      'https://www.facebook.com/klubsDEPO/',
+    )
+    expect(await depoLink.getAttribute('title')).toBe(
+      'Šarlotes iela 18A, Riga, LV-1001, Latvia',
+    )
+
+    const initialTooltip = await depoLink.evaluate((element) => {
+      const style = window.getComputedStyle(element, '::after')
+
+      return {
+        content: style.content,
+        opacity: Number(style.opacity),
+      }
+    })
+    expect(initialTooltip.content).toContain('Šarlotes iela 18A')
+    expect(initialTooltip.opacity).toBe(0)
+
+    await depoLink.hover()
+    await page.waitForFunction(() => {
+      const link = document.querySelector('.show-venue-link')
+      if (!link) {
+        return false
+      }
+
+      return Number(window.getComputedStyle(link, '::after').opacity) > 0.9
+    })
+
+    const hoveredTooltip = await depoLink.evaluate((element) => {
+      const style = window.getComputedStyle(element, '::after')
+
+      return {
+        content: style.content,
+        opacity: Number(style.opacity),
+      }
+    })
+    expect(hoveredTooltip.content).toContain('Šarlotes iela 18A')
+    expect(hoveredTooltip.opacity).toBeGreaterThan(0.9)
+
+    const lastadijaLink = page.locator('.show-venue-link', {
+      hasText: 'Lastadija',
+    })
+    expect(await lastadijaLink.getAttribute('href')).toBe(
+      'https://www.facebook.com/lastadija/',
+    )
+    expect(await lastadijaLink.getAttribute('title')).toContain(
+      'Kārļa Mīlenbaha iela 11',
+    )
+
+    await page.close()
+  }, 30_000)
 
   it('renders the optimized Everyday artwork uncropped on desktop and mobile', async () => {
     const page = await browser.newPage({

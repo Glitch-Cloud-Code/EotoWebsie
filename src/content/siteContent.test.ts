@@ -47,6 +47,28 @@ describe('site content helpers', () => {
 })
 
 describe('factual site content', () => {
+  it('lists the announced concerts in date order', () => {
+    expect(siteContent.shows).toEqual([
+      {
+        city: 'Riga, Latvia',
+        date: '2026-08-28',
+        status: '20:30',
+        venue: 'DEPO',
+        venueAddress: 'Šarlotes iela 18A, Riga, LV-1001, Latvia',
+        venueSocialUrl: 'https://www.facebook.com/klubsDEPO/',
+      },
+      {
+        city: 'Riga, Latvia',
+        date: '2026-09-19',
+        status: 'Shockwave Fest',
+        venue: 'Lastadija',
+        venueAddress:
+          'Kārļa Mīlenbaha iela 11 and Vilhelma Purvīša iela 13, 15, 17, Riga, Latvia',
+        venueSocialUrl: 'https://www.facebook.com/lastadija/',
+      },
+    ])
+  })
+
   it('uses the corrected contact email everywhere', () => {
     expect(siteContent.contact.email).toBe('echoesoftheorionband@gmail.com')
     expect(siteContent.booking.email).toBe(siteContent.contact.email)

@@ -40,7 +40,28 @@ export function ShowsPanel({ booking, shows }: ShowsPanelProps) {
                 </div>
 
                 <div className="show-meta">
-                  <p>{show.venue}</p>
+                  <p>
+                    {show.venueSocialUrl ? (
+                      <a
+                        aria-label={
+                          show.venueAddress
+                            ? `${show.venue} social page. Address: ${show.venueAddress}`
+                            : `${show.venue} social page`
+                        }
+                        className="show-venue-link"
+                        data-address={show.venueAddress}
+                        href={show.venueSocialUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                        title={show.venueAddress}
+                      >
+                        {show.venue}
+                        <ArrowUpRight aria-hidden="true" size={14} />
+                      </a>
+                    ) : (
+                      show.venue
+                    )}
+                  </p>
                   <span>{show.city}</span>
                 </div>
 

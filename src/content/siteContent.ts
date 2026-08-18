@@ -21,6 +21,8 @@ type ShowDetails = {
   city: string
   status?: string
   ticketUrl?: string
+  venueAddress?: string
+  venueSocialUrl?: string
   venue: string
 }
 
@@ -118,7 +120,25 @@ const base = import.meta.env.BASE_URL
 const email = 'echoesoftheorionband@gmail.com'
 const bookingSubject = 'Live invitation for Echoes Of The Orion'
 
-const shows: Show[] = []
+const shows: Show[] = [
+  {
+    city: 'Riga, Latvia',
+    date: createIsoDate('2026-08-28'),
+    status: '20:30',
+    venue: 'DEPO',
+    venueAddress: 'Šarlotes iela 18A, Riga, LV-1001, Latvia',
+    venueSocialUrl: 'https://www.facebook.com/klubsDEPO/',
+  },
+  {
+    city: 'Riga, Latvia',
+    date: createIsoDate('2026-09-19'),
+    status: 'Shockwave Fest',
+    venue: 'Lastadija',
+    venueAddress:
+      'Kārļa Mīlenbaha iela 11 and Vilhelma Purvīša iela 13, 15, 17, Riga, Latvia',
+    venueSocialUrl: 'https://www.facebook.com/lastadija/',
+  },
+]
 
 const platforms: PlatformLink[] = [
   {
