@@ -168,6 +168,19 @@ footer {
   border-top: 1px solid var(--color-line);
 }
 
+.show-status {
+  display: grid;
+  gap: 0.35rem;
+  text-align: right;
+}
+
+.show-status time {
+  color: var(--color-steel);
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .show-day {
   display: block;
   color: var(--color-text);

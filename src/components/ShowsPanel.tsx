@@ -71,9 +71,14 @@ export function ShowsPanel({ booking, shows }: ShowsPanelProps) {
                     <ArrowUpRight aria-hidden="true" size={16} />
                   </a>
                 ) : (
-                  <span className="show-status">
-                    {show.status ?? 'Details soon'}
-                  </span>
+                  <div className="show-status">
+                    <span>{show.status ?? 'Details soon'}</span>
+                    {show.doorsTime ? (
+                      <time dateTime={show.doorsTime}>
+                        Doors {show.doorsTime}
+                      </time>
+                    ) : null}
+                  </div>
                 )}
               </li>
             )

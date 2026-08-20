@@ -746,7 +746,7 @@ describe('logo flame visibility', () => {
       const platforms = document.querySelector('.hero-platform-links')
       const shows = document.querySelector('.shows-list')
       const showRows = Array.from(document.querySelectorAll('.show-row'))
-      if (!hero || !logo || !platforms || !shows || showRows.length !== 2) {
+      if (!hero || !logo || !platforms || !shows || showRows.length !== 1) {
         throw new Error('Desktop hero bounds unavailable')
       }
 
@@ -902,23 +902,25 @@ describe('logo flame visibility', () => {
     await page.close()
   }, 45_000)
 
-  it('shows venue addresses when hovering venue social links', async () => {
+  it('shows the Lastadija address when hovering its venue link', async () => {
     const page = await browser.newPage({
       viewport: { width: 1280, height: 900 },
     })
     await page.goto(url, { waitUntil: 'domcontentloaded' })
 
-    const depoLink = page.locator('.show-venue-link', { hasText: 'DEPO' })
-    await depoLink.waitFor({ state: 'visible', timeout: 10_000 })
+    const lastadijaLink = page.locator('.show-venue-link', {
+      hasText: 'Lastadija',
+    })
+    await lastadijaLink.waitFor({ state: 'visible', timeout: 10_000 })
 
-    expect(await depoLink.getAttribute('href')).toBe(
-      'https://www.facebook.com/klubsDEPO/',
+    expect(await lastadijaLink.getAttribute('href')).toBe(
+      'https://www.facebook.com/lastadija/',
     )
-    expect(await depoLink.getAttribute('title')).toBe(
-      'Šarlotes iela 18A, Riga, LV-1001, Latvia',
+    expect(await lastadijaLink.getAttribute('title')).toContain(
+      'Kārļa Mīlenbaha iela 11',
     )
 
-    const initialTooltip = await depoLink.evaluate((element) => {
+    const initialTooltip = await lastadijaLink.evaluate((element) => {
       const style = window.getComputedStyle(element, '::after')
 
       return {
@@ -926,10 +928,10 @@ describe('logo flame visibility', () => {
         opacity: Number(style.opacity),
       }
     })
-    expect(initialTooltip.content).toContain('Šarlotes iela 18A')
+    expect(initialTooltip.content).toContain('Kārļa Mīlenbaha iela 11')
     expect(initialTooltip.opacity).toBe(0)
 
-    await depoLink.hover()
+    await lastadijaLink.hover()
     await page.waitForFunction(() => {
       const link = document.querySelector('.show-venue-link')
       if (!link) {
@@ -939,7 +941,7 @@ describe('logo flame visibility', () => {
       return Number(window.getComputedStyle(link, '::after').opacity) > 0.9
     })
 
-    const hoveredTooltip = await depoLink.evaluate((element) => {
+    const hoveredTooltip = await lastadijaLink.evaluate((element) => {
       const style = window.getComputedStyle(element, '::after')
 
       return {
@@ -947,18 +949,8 @@ describe('logo flame visibility', () => {
         opacity: Number(style.opacity),
       }
     })
-    expect(hoveredTooltip.content).toContain('Šarlotes iela 18A')
+    expect(hoveredTooltip.content).toContain('Kārļa Mīlenbaha iela 11')
     expect(hoveredTooltip.opacity).toBeGreaterThan(0.9)
-
-    const lastadijaLink = page.locator('.show-venue-link', {
-      hasText: 'Lastadija',
-    })
-    expect(await lastadijaLink.getAttribute('href')).toBe(
-      'https://www.facebook.com/lastadija/',
-    )
-    expect(await lastadijaLink.getAttribute('title')).toContain(
-      'Kārļa Mīlenbaha iela 11',
-    )
 
     await page.close()
   }, 30_000)

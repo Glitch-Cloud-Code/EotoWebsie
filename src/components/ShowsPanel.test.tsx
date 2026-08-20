@@ -8,23 +8,19 @@ import {
 import { ShowsPanel } from './ShowsPanel'
 
 describe('ShowsPanel', () => {
-  it('renders the announced DEPO concert and Lastadija festival', () => {
+  it('renders the announced Lastadija festival', () => {
     const markup = renderToStaticMarkup(
       <ShowsPanel booking={siteContent.booking} shows={siteContent.shows} />,
     )
 
-    expect(markup).toContain('28')
-    expect(markup).toContain('AUG 2026')
-    expect(markup).toContain('DEPO')
-    expect(markup).toContain('20:30')
-    expect(markup).toContain('href="https://www.facebook.com/klubsDEPO/"')
-    expect(markup).toContain('Šarlotes iela 18A, Riga, LV-1001, Latvia')
     expect(markup).toContain('19')
     expect(markup).toContain('SEP 2026')
     expect(markup).toContain('Lastadija')
     expect(markup).toContain('Shockwave Fest')
+    expect(markup).toContain('<time dateTime="14:30">Doors 14:30</time>')
     expect(markup).toContain('href="https://www.facebook.com/lastadija/"')
     expect(markup).toContain('Kārļa Mīlenbaha iela 11')
+    expect(markup).not.toContain('DEPO')
     expect(markup).not.toContain('NO DATES ANNOUNCED')
   })
 

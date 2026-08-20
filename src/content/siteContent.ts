@@ -19,6 +19,7 @@ export type IsoDate = string & {
 
 type ShowDetails = {
   city: string
+  doorsTime?: string
   status?: string
   ticketUrl?: string
   venueAddress?: string
@@ -123,15 +124,8 @@ const bookingSubject = 'Live invitation for Echoes Of The Orion'
 const shows: Show[] = [
   {
     city: 'Riga, Latvia',
-    date: createIsoDate('2026-08-28'),
-    status: '20:30',
-    venue: 'DEPO',
-    venueAddress: 'Šarlotes iela 18A, Riga, LV-1001, Latvia',
-    venueSocialUrl: 'https://www.facebook.com/klubsDEPO/',
-  },
-  {
-    city: 'Riga, Latvia',
     date: createIsoDate('2026-09-19'),
+    doorsTime: '14:30',
     status: 'Shockwave Fest',
     venue: 'Lastadija',
     venueAddress:
