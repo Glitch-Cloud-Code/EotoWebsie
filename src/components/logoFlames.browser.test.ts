@@ -744,9 +744,9 @@ describe('logo flame visibility', () => {
       const hero = document.querySelector('.hero-section')
       const logo = document.querySelector('.logo-canvas-shell')
       const platforms = document.querySelector('.hero-platform-links')
-      const shows = document.querySelector('.shows-list')
-      const showRows = Array.from(document.querySelectorAll('.show-row'))
-      if (!hero || !logo || !platforms || !shows || showRows.length !== 1) {
+      const shows = document.querySelector('.shows-block')
+      const emptyState = document.querySelector('.empty-state')
+      if (!hero || !logo || !platforms || !shows || !emptyState) {
         throw new Error('Desktop hero bounds unavailable')
       }
 
@@ -762,10 +762,7 @@ describe('logo flame visibility', () => {
         innerHeight: window.innerHeight,
         logoWidth: logoBounds.width,
         platformBottom: platformBounds.bottom,
-        showListBottom: shows.getBoundingClientRect().bottom,
-        showRowHeights: showRows.map(
-          (showRow) => showRow.getBoundingClientRect().height,
-        ),
+        showsBottom: shows.getBoundingClientRect().bottom,
         targetHeights,
       }
     })
@@ -775,10 +772,9 @@ describe('logo flame visibility', () => {
     expect(desktopBounds.platformBottom).toBeLessThanOrEqual(
       desktopBounds.innerHeight + 1,
     )
-    expect(desktopBounds.showListBottom).toBeLessThanOrEqual(
+    expect(desktopBounds.showsBottom).toBeLessThanOrEqual(
       desktopBounds.innerHeight + 1,
     )
-    expect(Math.min(...desktopBounds.showRowHeights)).toBeGreaterThan(0)
     expect(desktopBounds.logoWidth).toBeGreaterThanOrEqual(580)
     expect(desktopBounds.logoWidth).toBeLessThanOrEqual(620)
     expect(Math.min(...desktopBounds.targetHeights)).toBeGreaterThanOrEqual(44)
@@ -902,55 +898,19 @@ describe('logo flame visibility', () => {
     await page.close()
   }, 45_000)
 
-  it('shows the Lastadija address when hovering its venue link', async () => {
+  it('uses the booking alias in the no-shows invitation', async () => {
     const page = await browser.newPage({
       viewport: { width: 1280, height: 900 },
     })
     await page.goto(url, { waitUntil: 'domcontentloaded' })
 
-    const lastadijaLink = page.locator('.show-venue-link', {
-      hasText: 'Lastadija',
-    })
-    await lastadijaLink.waitFor({ state: 'visible', timeout: 10_000 })
-
-    expect(await lastadijaLink.getAttribute('href')).toBe(
-      'https://www.facebook.com/lastadija/',
+    const invitation = page.getByRole('link', { name: 'Invite us to play' })
+    await invitation.waitFor({ state: 'visible', timeout: 10_000 })
+    expect(await invitation.getAttribute('href')).toBe(
+      'mailto:echoesoftheorionband+booking@gmail.com?subject=Live%20invitation%20for%20Echoes%20Of%20The%20Orion',
     )
-    expect(await lastadijaLink.getAttribute('title')).toContain(
-      'Kārļa Mīlenbaha iela 11',
-    )
-
-    const initialTooltip = await lastadijaLink.evaluate((element) => {
-      const style = window.getComputedStyle(element, '::after')
-
-      return {
-        content: style.content,
-        opacity: Number(style.opacity),
-      }
-    })
-    expect(initialTooltip.content).toContain('Kārļa Mīlenbaha iela 11')
-    expect(initialTooltip.opacity).toBe(0)
-
-    await lastadijaLink.hover()
-    await page.waitForFunction(() => {
-      const link = document.querySelector('.show-venue-link')
-      if (!link) {
-        return false
-      }
-
-      return Number(window.getComputedStyle(link, '::after').opacity) > 0.9
-    })
-
-    const hoveredTooltip = await lastadijaLink.evaluate((element) => {
-      const style = window.getComputedStyle(element, '::after')
-
-      return {
-        content: style.content,
-        opacity: Number(style.opacity),
-      }
-    })
-    expect(hoveredTooltip.content).toContain('Kārļa Mīlenbaha iela 11')
-    expect(hoveredTooltip.opacity).toBeGreaterThan(0.9)
+    expect(await page.locator('.show-row').count()).toBe(0)
+    expect(await page.getByText('NO DATES ANNOUNCED').count()).toBe(1)
 
     await page.close()
   }, 30_000)
@@ -1117,11 +1077,13 @@ describe('logo flame visibility', () => {
     const readContactLayout = () =>
       page.evaluate(() => {
         const contact = document.querySelector('#contact')
-        const email = document.querySelector<HTMLAnchorElement>('.contact-email')
+        const emailLinks = Array.from(
+          document.querySelectorAll<HTMLAnchorElement>('.contact-email'),
+        )
         const socialLinks = Array.from(
           document.querySelectorAll<HTMLAnchorElement>('.contact-socials a'),
         )
-        if (!contact || !email) {
+        if (!contact || emailLinks.length !== 2) {
           throw new Error('Contact section unavailable')
         }
 
@@ -1131,10 +1093,11 @@ describe('logo flame visibility', () => {
             left: contactBounds.left,
             right: contactBounds.right,
           },
-          email: {
+          emails: emailLinks.map((email) => ({
+            address: email.querySelector('.contact-email-address')?.textContent,
             href: email.getAttribute('href'),
-            text: email.textContent?.trim(),
-          },
+            label: email.querySelector('.contact-email-label')?.textContent,
+          })),
           innerWidth: window.innerWidth,
           navigationTargetsResolve: Array.from(
             document.querySelectorAll<HTMLAnchorElement>('.site-navigation a'),
@@ -1148,10 +1111,18 @@ describe('logo flame visibility', () => {
       })
 
     const desktop = await readContactLayout()
-    expect(desktop.email).toEqual({
-      href: 'mailto:echoesoftheorionband@gmail.com',
-      text: 'echoesoftheorionband@gmail.com',
-    })
+    expect(desktop.emails).toEqual([
+      {
+        address: 'echoesoftheorionband+booking@gmail.com',
+        href: 'mailto:echoesoftheorionband+booking@gmail.com',
+        label: 'Booking',
+      },
+      {
+        address: 'echoesoftheorionband+contact@gmail.com',
+        href: 'mailto:echoesoftheorionband+contact@gmail.com',
+        label: 'General contact',
+      },
+    ])
     expect(desktop.navigationTargetsResolve).toBe(true)
     const showsLink = page.getByRole('link', { name: 'Shows' })
     expect(await showsLink.getAttribute('href')).toBe('#top')

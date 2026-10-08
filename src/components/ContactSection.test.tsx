@@ -13,10 +13,14 @@ describe('ContactSection', () => {
     />,
   )
 
-  it('renders the corrected email as visible text and a mail link', () => {
-    expect(contact.email).toBe('echoesoftheorionband@gmail.com')
-    expect(markup).toContain(`href="mailto:${contact.email}"`)
-    expect(markup).toContain(`>${contact.email}</a>`)
+  it('renders both labeled contact aliases as mail links', () => {
+    expect(contact.channels).toHaveLength(2)
+
+    for (const channel of contact.channels) {
+      expect(markup).toContain(`href="mailto:${channel.email}"`)
+      expect(markup).toContain(`>${channel.label}</span>`)
+      expect(markup).toContain(`>${channel.email}</span>`)
+    }
   })
 
   it('renders each required social destination exactly once', () => {

@@ -631,16 +631,41 @@ footer {
   line-height: 1.7;
 }
 
+.contact-emails {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 34rem;
+  margin-top: 1.5rem;
+}
+
 .contact-email {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 0.65rem;
   max-width: 100%;
   min-height: 3rem;
-  margin-top: 1.5rem;
+  padding: 0.45rem 0;
   color: var(--color-text);
   overflow-wrap: anywhere;
   text-decoration: none;
+}
+
+.contact-email-label,
+.contact-email-address {
+  display: block;
+}
+
+.contact-email-label {
+  margin-bottom: 0.2rem;
+  color: var(--color-red-light);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.contact-email-address {
+  font-size: 0.92rem;
 }
 
 .contact-socials {

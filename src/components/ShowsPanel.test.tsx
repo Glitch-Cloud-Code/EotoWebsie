@@ -8,25 +8,9 @@ import {
 import { ShowsPanel } from './ShowsPanel'
 
 describe('ShowsPanel', () => {
-  it('renders the announced Lastadija festival', () => {
+  it('renders the booking invitation when there are no upcoming shows', () => {
     const markup = renderToStaticMarkup(
       <ShowsPanel booking={siteContent.booking} shows={siteContent.shows} />,
-    )
-
-    expect(markup).toContain('19')
-    expect(markup).toContain('SEP 2026')
-    expect(markup).toContain('Lastadija')
-    expect(markup).toContain('Shockwave Fest')
-    expect(markup).toContain('<time dateTime="14:30">Doors 14:30</time>')
-    expect(markup).toContain('href="https://www.facebook.com/lastadija/"')
-    expect(markup).toContain('Kārļa Mīlenbaha iela 11')
-    expect(markup).not.toContain('DEPO')
-    expect(markup).not.toContain('NO DATES ANNOUNCED')
-  })
-
-  it('renders the booking invitation when no shows are announced', () => {
-    const markup = renderToStaticMarkup(
-      <ShowsPanel booking={siteContent.booking} shows={[]} />,
     )
 
     expect(markup).toContain('NO DATES ANNOUNCED')
@@ -34,8 +18,10 @@ describe('ShowsPanel', () => {
     expect(markup).toContain('We are looking for new live opportunities.')
     expect(markup).toContain('Invite us to play')
     expect(markup).toContain(
-      'href="mailto:echoesoftheorionband@gmail.com?subject=Live%20invitation%20for%20Echoes%20Of%20The%20Orion"',
+      'href="mailto:echoesoftheorionband+booking@gmail.com?subject=Live%20invitation%20for%20Echoes%20Of%20The%20Orion"',
     )
+    expect(markup).not.toContain('Lastadija')
+    expect(markup).not.toContain('Shockwave Fest')
   })
 
   it('renders a ticket link for a ticketed show', () => {

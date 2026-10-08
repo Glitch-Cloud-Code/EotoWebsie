@@ -78,6 +78,11 @@ export type Booking = {
   subject: string
 }
 
+export type ContactChannel = {
+  email: string
+  label: string
+}
+
 export type Release = {
   artwork: PhotoAsset
   spotifyUrl: string
@@ -112,27 +117,17 @@ export type SiteContent = {
   members: Member[]
   gallery: GalleryPhotoAsset[]
   contact: {
-    email: string
+    channels: ContactChannel[]
     statement: string
   }
 }
 
 const base = import.meta.env.BASE_URL
-const email = 'echoesoftheorionband@gmail.com'
+const bookingEmail = 'echoesoftheorionband+booking@gmail.com'
+const contactEmail = 'echoesoftheorionband+contact@gmail.com'
 const bookingSubject = 'Live invitation for Echoes Of The Orion'
 
-const shows: Show[] = [
-  {
-    city: 'Riga, Latvia',
-    date: createIsoDate('2026-09-19'),
-    doorsTime: '14:30',
-    status: 'Shockwave Fest',
-    venue: 'Lastadija',
-    venueAddress:
-      'Kārļa Mīlenbaha iela 11 and Vilhelma Purvīša iela 13, 15, 17, Riga, Latvia',
-    venueSocialUrl: 'https://www.facebook.com/lastadija/',
-  },
-]
+const shows: Show[] = []
 
 const platforms: PlatformLink[] = [
   {
@@ -325,9 +320,9 @@ export const siteContent: SiteContent = {
   },
   shows,
   booking: {
-    email,
+    email: bookingEmail,
     invitation: 'Want us on your stage? Invite us to play.',
-    mailtoUrl: `mailto:${email}?subject=${encodeURIComponent(bookingSubject)}`,
+    mailtoUrl: `mailto:${bookingEmail}?subject=${encodeURIComponent(bookingSubject)}`,
     subject: bookingSubject,
   },
   platforms,
@@ -336,7 +331,10 @@ export const siteContent: SiteContent = {
   members,
   gallery,
   contact: {
-    email,
+    channels: [
+      { email: bookingEmail, label: 'Booking' },
+      { email: contactEmail, label: 'General contact' },
+    ],
     statement: 'Live invitations, collaboration, and general enquiries.',
   },
 }

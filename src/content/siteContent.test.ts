@@ -47,25 +47,24 @@ describe('site content helpers', () => {
 })
 
 describe('factual site content', () => {
-  it('lists the announced concerts in date order', () => {
-    expect(siteContent.shows).toEqual([
-      {
-        city: 'Riga, Latvia',
-        date: '2026-09-19',
-        doorsTime: '14:30',
-        status: 'Shockwave Fest',
-        venue: 'Lastadija',
-        venueAddress:
-          'Kārļa Mīlenbaha iela 11 and Vilhelma Purvīša iela 13, 15, 17, Riga, Latvia',
-        venueSocialUrl: 'https://www.facebook.com/lastadija/',
-      },
-    ])
+  it('has no upcoming concerts after the festival', () => {
+    expect(siteContent.shows).toEqual([])
   })
 
-  it('uses the corrected contact email everywhere', () => {
-    expect(siteContent.contact.email).toBe('echoesoftheorionband@gmail.com')
-    expect(siteContent.booking.email).toBe(siteContent.contact.email)
-    expect(siteContent.booking.mailtoUrl).toContain(siteContent.contact.email)
+  it('uses purpose-specific contact aliases', () => {
+    expect(siteContent.booking.email).toBe(
+      'echoesoftheorionband+booking@gmail.com',
+    )
+    expect(siteContent.contact.channels).toEqual([
+      {
+        email: 'echoesoftheorionband+booking@gmail.com',
+        label: 'Booking',
+      },
+      {
+        email: 'echoesoftheorionband+contact@gmail.com',
+        label: 'General contact',
+      },
+    ])
   })
 
   it('keeps contact and platform data in canonical fields', () => {
@@ -79,7 +78,7 @@ describe('factual site content', () => {
       'Live invitation for Echoes Of The Orion',
     )
     expect(siteContent.booking.mailtoUrl).toBe(
-      'mailto:echoesoftheorionband@gmail.com?subject=Live%20invitation%20for%20Echoes%20Of%20The%20Orion',
+      'mailto:echoesoftheorionband+booking@gmail.com?subject=Live%20invitation%20for%20Echoes%20Of%20The%20Orion',
     )
   })
 

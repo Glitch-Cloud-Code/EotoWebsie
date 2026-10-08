@@ -51,10 +51,21 @@ export function ContactSection({
         <span className="section-index">CONTACT</span>
         <h2 id="contact-title">Get in touch</h2>
         <p>{contact.statement}</p>
-        <a className="contact-email" href={`mailto:${contact.email}`}>
-          <Mail aria-hidden="true" size={20} />
-          {contact.email}
-        </a>
+        <div className="contact-emails">
+          {contact.channels.map((channel) => (
+            <a
+              className="contact-email"
+              href={`mailto:${channel.email}`}
+              key={channel.email}
+            >
+              <Mail aria-hidden="true" size={20} />
+              <span>
+                <span className="contact-email-label">{channel.label}</span>
+                <span className="contact-email-address">{channel.email}</span>
+              </span>
+            </a>
+          ))}
+        </div>
       </div>
 
       <nav aria-label={`${bandName} social links`} className="contact-socials">
